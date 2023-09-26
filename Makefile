@@ -29,7 +29,7 @@ iso: kernel
 	$(CP) $(BIN) $(BOOT_PATH)
 	$(CP) $(CFG) $(GRUB_PATH)
 	grub-file --is-x86-multiboot $(BOOT_PATH)/$(BIN)
-	grub-mkrescue -o my-kernel.iso $(ISO_PATH)
+	grub-mkrescue -o $(KERNEL_NAME) $(ISO_PATH)
 
 docker-compile: docker-build
 	docker run -ti -v .:/app --rm $(DOCKER_IMG_NAME)
