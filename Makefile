@@ -19,7 +19,8 @@ bootloader: boot.asm
 	nasm -f elf32 boot.asm -o boot.o
 
 kernel: kernel.c
-	gcc -m32 -c kernel.c -o kernel.o
+	rustc --target=i686-unknown-linux-gnu --emit=obj -C panic=abort kernel.rs -o kernel.o
+	#gcc -m32 -c kernel.c -o kernel.o
 
 linker: linker.ld boot.o kernel.o
 	ld -m elf_i386 -T linker.ld -o kernel boot.o kernel.o
