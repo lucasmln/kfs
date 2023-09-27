@@ -17,7 +17,7 @@ SRC = main.rs
 OBJ = $(SRCS:.rs=.o)
 
 %.o: %.rs
-	$(RUSTC) --target=i686-unknown-linux-gnu --emit=obj -C panic=abort $< -o $@
+	$(RUSTC) -O --target=i686-unknown-linux-gnu --emit=obj -C panic=abort $< -o $@
 
 .PHONY: all
 all: bootloader kernel linker iso
