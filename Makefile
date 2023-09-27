@@ -2,6 +2,7 @@ CP := cp
 RM := rm -rf
 MKDIR := mkdir -pv
 
+RUSTC = rustc
 BIN = kernel
 CFG = grub.cfg
 ISO_PATH := iso
@@ -11,6 +12,13 @@ GRUB_PATH := $(BOOT_PATH)/grub
 DOCKER_IMG_NAME = "kfs:1"
 KERNEL_NAME = "kernel.iso"
 
+SRCS = $(addprefix src/, $(SRC))
+SRC = main.rs
+OBJ = $(SRCS:.rs=.o)
+
+%.o: %.rs
+	$(RUSTC) --target=i686-unknown-linux-gnu --emit=obj -C panic=abort $< -o $@
+
 .PHONY: all
 all: bootloader kernel linker iso
 	@echo Make has completed.
@@ -18,12 +26,10 @@ all: bootloader kernel linker iso
 bootloader: boot.asm
 	nasm -f elf32 boot.asm -o boot.o
 
-kernel: kernel.c
-	rustc --target=i686-unknown-linux-gnu --emit=obj -C panic=abort kernel.rs -o kernel.o
-	#gcc -m32 -c kernel.c -o kernel.o
+kernel: $(OBJ)
 
-linker: linker.ld boot.o kernel.o
-	ld -m elf_i386 -T linker.ld -o kernel boot.o kernel.o
+linker: linker.ld boot.o $(OBJ)
+	ld -m elf_i386 -T linker.ld -o kernel boot.o $(OBJ)
 
 iso: kernel
 	$(MKDIR) $(GRUB_PATH)
@@ -42,6 +48,9 @@ run:
 	qemu-system-i386 -cdrom $(KERNEL_NAME)
 
 clean:
-		$(RM) *.o $(BIN) *iso
+	$(RM) *.o $(BIN) *iso $(OBJ)
+
+fclean: clean
+	$(RM) $(KERNEL_NAME)
 
 .PHONY: clean
