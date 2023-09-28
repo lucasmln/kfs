@@ -1,27 +1,24 @@
 #![no_std] // don't link the Rust standard library
 #![no_main] // disable all Rust-level entry points
 
-const VGA_ADDRESS: u32 = 0xB8000;
-const WIDTH: u32 = 80;
-const HEIGHT: u32 = 25;
+mod interface;
 
-struct Cell {
-    character: u8,
-    color: u8
-}
+use interface::Cell;
+use interface::Interface;
+use interface::Colors;
+use interface::print_string;
 
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn main() -> ! {
     // this function is the entry point, since the linker looks for a function
     // named `_start` by default
 
-    let vga_buffer: *mut Cell = VGA_ADDRESS as *mut Cell;
+    let mut interface = Interface { cursor: 0, vga_address: interface::VGA_ADDRESS as *mut Cell};
 
-    clear_screan(vga_buffer);
     unsafe {
-        (*vga_buffer).character = b'a';
-        (*vga_buffer).color = 25;
-        (*vga_buffer.offset(1)).character = b'c';
+        interface::clear_screen(&mut interface);
+        let str: &[u8] = b"salut\ncava ?";
+        print_string(&mut interface, str, &Colors::Green);
     }
     // clear_screan(vga_buffer);
     loop {}
@@ -31,13 +28,4 @@ pub extern "C" fn main() -> ! {
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
-}
-
-fn clear_screan(vga_buffer: *mut Cell) {
-    for i in 0..WIDTH * HEIGHT { 
-        unsafe {
-            (*vga_buffer.offset(i as isize)).character = b'a';
-            (*vga_buffer.offset(i as isize)).color = 0;
-        }
-    }
 }
