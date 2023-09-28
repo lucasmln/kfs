@@ -1,6 +1,8 @@
 CP := cp
 RM := rm -rf
 MKDIR := mkdir -pv
+DIR=$(PWD)
+
 
 RUSTC = rustc
 KERNEL = kernel
@@ -40,7 +42,7 @@ iso: kernel
 	grub-mkrescue -o $(ISO_NAME) $(ISO_PATH)
 
 docker-compile: docker-build
-	docker run -ti -v .:/app --rm $(DOCKER_IMG_NAME)
+	docker run -ti -v $(DIR):/app --rm $(DOCKER_IMG_NAME)
 
 docker-build:
 	docker build -t $(DOCKER_IMG_NAME) .
