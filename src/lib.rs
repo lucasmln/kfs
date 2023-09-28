@@ -23,29 +23,8 @@ pub extern "C" fn main() -> ! {
         (*vga_buffer).color = 25;
         (*vga_buffer.offset(1)).character = b'c';
     }
-    clear_screan(vga_buffer);
+    // clear_screan(vga_buffer);
     loop {}
-}
-
-use core::ffi::c_void;
-use core::ffi::c_int;
-use core::ffi::c_char;
-use core::ffi::c_uint;
-
-#[no_mangle]
-pub unsafe extern "C" fn memset(dest: *mut c_void, c: c_int, n: c_uint) -> *mut c_void {
-    let rdest: *mut c_int = dest as *mut c_int;
-    *rdest.offset(0) = c;
-    return dest;
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn strlen(cs: *const c_char) -> c_uint {
-    let mut i: c_uint = 0;
-    while cs.offset(i as isize) != core::ptr::null() {
-        i += 1;
-    }
-    return i
 }
 
 /// This function is called on panic.
