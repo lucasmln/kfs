@@ -10,6 +10,22 @@ section .text
 global start
 extern main                      ;defined in the C file
 
+read_port:
+	mov edx, [esp + 4]
+	in al, dx	
+	ret
+
+write_port:
+	mov   edx, [esp + 4]    
+	mov   al, [esp + 4 + 4]  
+	out   dx, al  
+	ret
+
+keyboard_handler:                 
+	call    keyboard_handler_main
+	iretd
+
+
 start:
         cli                      ;block interrupts
         mov esp, stack_space     ;set stack pointer
