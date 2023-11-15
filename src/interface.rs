@@ -1,6 +1,6 @@
 const VGA_ADDRESS: u32 = 0xB8000;
-const WIDTH: u32 = 80;
-const HEIGHT: u32 = 25;
+const WIDTH: usize = 80;
+const HEIGHT: usize = 25;
 const SCREEN_AMOUNT: u32 = 7;
 
 #[derive(Clone, Copy)]
@@ -23,113 +23,142 @@ pub enum Colors {
     BrightWhite,
 }
 
+#[repr(C)]
 pub struct Cell {
     character: u8,
-    color: u8
+    color: Colors
+}
+#[repr(transparent)]
+struct Buffer {
+    cells: [[Cell; WIDTH as usize]; HEIGHT as usize]
 }
 
 pub struct Interface {
-    pub cursor: u32,
-    pub vga_address: *mut Cell,
+    pub x: usize,
+    pub y: usize,
+    // pub vga_address: *mut Cell,
+    pub color: Colors,
+    pub vga_address: &'static mut Buffer,
 }
 impl Default for Interface {
     fn default() -> Self {
-        Self { cursor: 0, vga_address: VGA_ADDRESS as *mut Cell}
+        Self { x: 0, y: 0, color: Colors::White, vga_address: unsafe { &mut *(VGA_ADDRESS as *mut Buffer) } }
     }
 }
 impl Interface {
 
-    fn print_cell_at_offset(&mut self, x: u32, y: u32, cell: &Cell) {
+    pub fn get_cursor(&self) -> (usize, usize) {
+        return (self.x, self.y)
+    }
+
+    pub fn set_cursor(&mut self, x: usize, y: usize) {
         assert!(x < WIDTH);
         assert!(y < HEIGHT);
-        unsafe {
-            (*self.vga_address.offset((x + (WIDTH * y)) as isize)).character = cell.character;
-            (*self.vga_address.offset((x + (WIDTH * y)) as isize)).color = cell.color;
-        }
-    }
-
-    fn print_char_at_offset(&mut self, x: u32, y: u32, character: &u8, color: &Colors) {
-        let cell = Cell { character: *character, color: *color as u8 };
-        self.print_cell_at_offset(x, y, &cell)
-    }
-
-    fn print_cell(&mut self, cell: &Cell) {
-        if self.cursor >= HEIGHT * WIDTH {
-
-            // Reprint the screen moving each line 1 above
-            for i in 0..HEIGHT * WIDTH - WIDTH {
-                unsafe {
-                    (*self.vga_address.offset(i as isize)).character = (*self.vga_address.offset((i + WIDTH) as isize)).character;
-                    (*self.vga_address.offset(i as isize)).color = (*self.vga_address.offset((i + WIDTH) as isize)).color;
-                }
-            }
-
-            // Clear the last line 
-            self.clear_line(HEIGHT - 1);
-            self.cursor = HEIGHT * WIDTH - WIDTH;
-        }
-        if cell.character == b'\n' {
-            self.cursor = self.cursor + WIDTH - self.cursor % WIDTH;
-        }
-        else {
-            unsafe {
-                (*self.vga_address.offset(self.cursor as isize)).character = cell.character;
-                (*self.vga_address.offset(self.cursor as isize)).color = cell.color;
-            }
-            self.cursor += 1;
-        }
-    }
-
-    pub fn get_cursor(&self) -> (u32, u32) {
-        return (self.cursor % WIDTH, self.cursor / WIDTH)
-    }
-
-    pub fn set_cursor(&mut self, x: u32, y: u32) {
-        assert!(x < WIDTH);
-        assert!(y < HEIGHT);
-        self.cursor = x + (WIDTH * y)
+        self.x = x;
+        self.y = y;
     }
 
     fn clear_line(&mut self, n: u32) {
-        let cell: Cell = Cell { character: 0, color: 0 };
+        let cell: Cell = Cell { character: 0, color: Colors::Black };
         for x in 0..WIDTH { 
-            self.print_cell_at_offset(x, n, &cell);
+            // self.print_char(x, n, &cell);
         }
     }
 
-    pub fn clear_screen(&mut self) {
-        let cell: Cell = Cell { character: 0, color: 0 };
+    // check color and reset it
+    pub fn reset_screen(&mut self) {
+        let cell: Cell = Cell { character: 0, color: Colors::Black };
 
-        self.cursor = 0;
-        for _ in 0..WIDTH * HEIGHT { 
-            self.print_cell(&cell);
+        self.x = 0;
+        self.y = 0;
+        self.color = Colors::Black;
+        for _ in 0..HEIGHT { 
+            for _ in 0..WIDTH {
+                self.print_char(0);
+            }
         }
-        self.cursor = 0;
+        self.x = 0;
+        self.y = 0;
+        self.color = Colors::White;
     }
 
-    pub fn print_char(&mut self, character: &u8, color: &Colors) {
-        let cell = Cell { character: *character, color: *color as u8 };
-        self.print_cell(&cell);
+    pub fn print_char(&mut self, character: u8) {
+        // if self.x >= WIDTH {
+
+        //     // Reprint the screen moving each line 1 above
+        //     for i in 0..HEIGHT * WIDTH - WIDTH {
+        //         unsafe {
+        //             // (*self.vga_address.offset(i as isize)).character = (*self.vga_address.offset((i + WIDTH) as isize)).character;
+        //             // (*self.vga_address.offset(i as isize)).color = (*self.vga_address.offset((i + WIDTH) as isize)).color;
+        //         }
+        //     }
+
+        //     // Clear the last line 
+        //     self.clear_line(HEIGHT - 1);
+        //     self.cursor = HEIGHT * WIDTH - WIDTH;
+        // }
+        // if character == b'\n' {
+        //     self.cursor = self.cursor + WIDTH - self.cursor % WIDTH;
+        // }
+        // else {
+            self.vga_address.cells[self.y][self.x].character = character;
+            self.vga_address.cells[self.y][self.x].color = self.color;
+            // (*self.vga_address.offset(self.cursor as isize)).character = cell.character;
+            // (*self.vga_address.offset(self.cursor as isize)).color = cell.color;
+            self.x += 1;
+        // }
     }
 
-    pub fn print_string(&mut self, str: &[u8], color: &Colors) {
-        for (_, byte) in str.iter().enumerate() {
-            self.print_char(byte, color)
+    pub fn print_string(&mut self, str: &str) {
+        for byte in str.bytes() {
+            self.print_char(byte)
         }
     }
 
-    pub fn print_number(&mut self, nbr: i32, color: &Colors)
-    {
-        let mut is_neg = 1;
-        if nbr < 0 {
-            self.print_char(&b'-', color);
-            is_neg = -1;
-        }
-        if nbr >= 10 || nbr <= -10 {
-            self.print_number(nbr / (10 * is_neg), color);
-        }
-        self.print_char( &u8::try_from(((nbr % (10 * is_neg)) * is_neg) + 48).unwrap(), color);
+    // pub fn print_number(&mut self, nbr: i32, color: &Colors)
+    // {
+    //     let mut is_neg = 1;
+    //     if nbr < 0 {
+    //         self.print_char(&b'-', color);
+    //         is_neg = -1;
+    //     }
+    //     if nbr >= 10 || nbr <= -10 {
+    //         self.print_number(nbr / (10 * is_neg), color);
+    //     }
+    //     self.print_char( &u8::try_from(((nbr % (10 * is_neg)) * is_neg) + 48).unwrap(), color);
+    // }
+}
+impl fmt::Write for Interface {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.print_string(s);
+        // Obligé de return un result, d'ou le Ok(())
+        // et comme ca, le unwrap() dans le _print() va jamais panic.
+        Ok(())
     }
 }
 
-pub static interface = Interface::default();
+use core::fmt::{self, Write};
+
+use lazy_static::lazy_static;
+// Have to use spin 
+use spin::Mutex;
+
+// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
+lazy_static! {
+    pub static ref INTERFACE: Mutex<Interface> = Mutex::new(Interface::default());
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        $crate::interface::_print(format_args!($($arg)*));
+    };
+}
+
+pub fn _print(args: fmt::Arguments) {
+    INTERFACE.lock().write_fmt(args).unwrap();
+}
+
+pub fn set_color(color: Colors) {
+    INTERFACE.lock().color = color;
+}
