@@ -7,10 +7,38 @@ mod utils;
 use interface::Interface;
 use interface::Colors;
 
+fn print_header(interface: &mut Interface) {
+    interface.print_string(b"/* ************************************************************************** */", &Colors::BrightWhite);
+    interface.print_string(b"/*                                                                            */", &Colors::BrightWhite);
+    interface.print_string(b"/*                                                        :::      ::::::::   */", &Colors::BrightWhite);
+    interface.print_string(b"/*   main.rs                                            :+:      :+:    :+:   */", &Colors::BrightWhite);
+    interface.print_string(b"/*                                         ,          +:+ +:+         +:+     */", &Colors::BrightWhite);
+    interface.print_string(b"/*   By: Arthur and Lucas aka les mecs stylees      +#+  +:+       +#+        */", &Colors::BrightWhite);
+    interface.print_string(b"/*                                                +#+#+#+#+#+   +#+           */", &Colors::BrightWhite);
+    interface.print_string(b"/*   Created: 2023/11/14 15:09:19 by Lucas             #+#    #+#             */", &Colors::BrightWhite);
+    interface.print_string(b"/*   Updated: 2023/11/14 01:24:22 by Arthur           ###   ########.fr       */", &Colors::BrightWhite);
+    interface.print_string(b"/*                                                                            */", &Colors::BrightWhite);
+    interface.print_string(b"/* ************************************************************************** */", &Colors::BrightWhite);
+    let saved_cursor = interface.get_cursor();
+
+    interface.set_cursor(9, saved_cursor.1 - 6);
+    interface.print_string(b"Arthur", &Colors::BrightRed);
+    interface.set_cursor(37, saved_cursor.1 - 3);
+    interface.print_string(b"Arthur", &Colors::BrightRed);
+
+    interface.set_cursor(20, saved_cursor.1 - 6);
+    interface.print_string(b"Lucas", &Colors::Green);
+    interface.set_cursor(37, saved_cursor.1 - 4);
+    interface.print_string(b"Lucas", &Colors::Green);
+
+
+    interface.set_cursor(saved_cursor.0, saved_cursor.1);
+}
+
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn main() -> ! {
     // this function is the entry point, since the linker looks for a function
-    // named `_start` by default
+    // named `main` by default
 
     let mut interface = Interface::default();
 
@@ -118,7 +146,7 @@ pub extern "C" fn main() -> ! {
         let index = utils::readline();
         unsafe {
             // if index != save {
-            interface.print_char(&(key_array[index as usize] as u8), &Colors::Green);
+            interface.print_number(&(key_array[index as usize] as u8), &Colors::Green);
             // }
             save = index;
         }
