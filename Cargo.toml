@@ -1,0 +1,18 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "kernel"           # The name of the target.
+path = "src/lib.rs"    # The source file of the target.
+edition = "2021"       # The edition of the target.
+crate-type = ["staticlib"]   # The crate types to generate.
+
+[dependencies]
+spin = "0.9.8"
+volatile = "0.2.3"
+
+[dependencies.lazy_static]
+version = "1.0"
+features = ["spin_no_std"]
