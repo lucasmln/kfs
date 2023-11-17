@@ -1,3 +1,5 @@
+use crate::io;
+
 const VGA_ADDRESS: u32 = 0xB8000;
 const WIDTH: usize = 80;
 const HEIGHT: usize = 25;
@@ -49,6 +51,34 @@ impl Default for Interface {
 
 impl Interface {
 
+    fn enable_cursor(&mut self) {
+        // We call `out 0x3d4, 0xa` so that on the `out 0x3d5, 0xe` the cursor will change it's look
+        io::outb(0x3d4, 0xa);
+        // bits 0-4 control the cursor shape (0x0-0xf range), we chose 0xe because it looks cool
+        io::outb(0x3d5, 0xe);
+    }
+    fn disable_cursor(&mut self) {
+        // We call `out 0x3d4, 0xa` so that on the `out 0x3d5, 0x10` the cursor will disapear
+        io::outb(0x3d4, 0xa);
+        // bit 5 disables the cursor (0xf or 1 << 4)
+        io::outb(0x3d5, 0xf);
+    }
+
+    fn set_cursor_position(&mut self) {
+        // pos of the cursor is calculated the same way character are placed on the screen
+        // pos should (and must) be in the range (0-WIDTH*HEIGHT-1)
+        let pos = self.y * WIDTH + self.x;
+
+        // say we are going to put the lower bits (0-7)
+        io::outb(0x3D4, 0x0F);
+        // put the lower 8 bits
+        io::outb(0x3D5, (pos & 0xff).try_into().unwrap());
+        // say we are going to put the upper bits (8-15)
+        io::outb(0x3D4, 0x0E);
+        // put the upper 8 bits
+        io::outb(0x3D5, ((pos >> 8) & 0xff).try_into().unwrap());
+    }
+
     fn clear_line(&mut self, n: usize) {
         for x in 0..WIDTH {
             self.vga_address.cells[n][x].character = b' ';
@@ -57,6 +87,8 @@ impl Interface {
     }
 
     pub fn reset_screen(&mut self) {
+        self.disable_cursor();
+        self.enable_cursor();
         self.x = 0;
         self.y = 0;
         self.color = Colors::White;
@@ -98,6 +130,7 @@ impl Interface {
         for byte in str.bytes() {
             self.print_char(byte)
         }
+        self.set_cursor_position();
     }
 
 }
@@ -145,4 +178,9 @@ pub fn set_color(color: Colors) {
 
 pub fn reset_screen() {
     INTERFACE.lock().reset_screen()
+}
+
+pub fn get_kernel_address<T>(address: u32) -> *const T
+{
+    return address as *const T;
 }
