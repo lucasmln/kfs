@@ -4,14 +4,18 @@
 
 mod interface;
 mod utils;
+mod gdt;
 
 use interface::Colors;
+use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen};
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
-
+    let mut gdt: gdt::GdtEntry = gdt::GdtEntry::default();
+    let mut gp: gdt::GdtPtr = gdt::GdtPtr::default();
+    gdt_install(gp, &mut gdt);
     reset_screen();
     utils::print_header();
     set_color(Colors::White);
