@@ -11,11 +11,12 @@ use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen};
 
+
 #[no_mangle]
 pub extern "C" fn main() -> ! {
-    let mut gdt: gdt::GdtEntry = gdt::GdtEntry::default();
+    let mut gdt: [gdt::GdtEntry; 5] = [gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default()];
     let mut gp: gdt::GdtPtr = gdt::GdtPtr::default();
-    gdt_install(gp, &mut gdt);
+    gdt_install(&mut gp, &mut gdt[0]);
     reset_screen();
     utils::print_header();
     set_color(Colors::White);
