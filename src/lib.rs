@@ -10,27 +10,20 @@ mod io;
 use interface::Colors;
 use crate::gdt::gdt_install;
 
-use crate::interface::{set_color, reset_screen};
-
+use crate::interface::{set_color, reset_screen, get_kernel_address};
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
-    let mut gdt: [gdt::GdtEntry; 5] = [gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default(), gdt::GdtEntry::default()];
-    let mut gp: gdt::GdtPtr = gdt::GdtPtr::default();
-    gdt_install(&mut gp, &mut gdt[0]);
+
+    gdt_install();
+
     reset_screen();
     utils::print_header();
     set_color(Colors::White);
     println!();
 
-    let nbr: u128 = 12412421412414;
+    println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
 
-    println!("{}|{}", "bonjour je m'apl Lucas :) !", nbr);
-
-    let tab = [0; 25];
-    for i in 0..30 {
-        let _ = tab[i];
-    }
     loop {}
 }
 

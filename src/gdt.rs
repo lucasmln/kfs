@@ -1,7 +1,6 @@
 use core::mem::size_of;
-use core::arch::asm;
 
-const GDT_BASE: u32 = 0x00000800;
+const GDT_ENTRY_AMOUNT: usize = 7;
 
 extern "C" {
     fn gdt_flush(gp: &mut GdtPtr);
@@ -15,6 +14,15 @@ pub struct GdtEntry {
     pub access: u8,
     pub granularity: u8,
     pub base_high: u8
+}
+
+pub struct GdtTable {
+    pub gdt: &'static mut [GdtEntry; GDT_ENTRY_AMOUNT]
+}
+impl Default for GdtTable {
+    fn default() -> Self {
+        Self { gdt: unsafe { &mut *(0x800 as *mut [GdtEntry; GDT_ENTRY_AMOUNT]) } }
+    }
 }
 
 impl Default for GdtEntry {
@@ -41,51 +49,46 @@ pub fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granula
     entry.base_high = ((base >> 24) & 0xff) as u8;
 
     entry.limit_low = (limit & 0xffff) as u16;
-    entry.granularity = ((limit << 16) & 0xf) as u8;
+    entry.granularity = ((limit >> 16) & 0xf) as u8;
 
     entry.granularity |= granularity & 0xf0;
     entry.access = access;
     return;
 }
 
-// pub fn gdt_flush(gp: &mut GdtPtr) {
-//     unsafe {
-//         asm!(
-//             "lgdt {0}",
-//             "mov 0x10, ax",
-//             "mov ax, ds",
-//             "mov ax, es",
-//             "mov ax, fs",
-//             "mov ax, gs",
-//             "ret",
-//             in(reg) gp
-//         );
-//     }
-// }
+use lazy_static::lazy_static;
+use spin::Mutex;
+lazy_static! {
+    static ref GDT: Mutex<GdtTable> = Mutex::new(GdtTable::default());
+}
 
-pub fn gdt_install(gp: &mut GdtPtr, gdt: &mut GdtEntry)
+pub fn gdt_install()
 {
+    let mut gp: GdtPtr = GdtPtr::default();
+
     /* Setup the GDT pointer and limit */
-    gp.limit = ((size_of::<GdtEntry>() * 3) - (1 as usize)) as u16;
-    gp.base = gdt as *const _ as u32;
+    gp.limit = ((size_of::<GdtEntry>() * GDT_ENTRY_AMOUNT) - (1 as usize)) as u16;
+    gp.base = &GDT.lock().gdt[0] as *const _ as u32;
 
+    /* https://wiki.osdev.org/Global_Descriptor_Table#Segment_Descriptor */
     /* Our NULL descriptor */
-    // init_gdt(0, 0, 0, 0, 0);
+    init_gdt(&mut GDT.lock().gdt[0], 0, 0, 0, 0);
+    /* kernel code */
+    init_gdt(&mut GDT.lock().gdt[1], 0, 0xffffffff, 0x9B, 0xcf);
+    /* kernel data */
+    init_gdt(&mut GDT.lock().gdt[2], 0, 0xffffffff, 0x93, 0xcf);
+    /* kernel stack */
+    init_gdt(&mut GDT.lock().gdt[3], 0, 0xffffffff, 0x97, 0xcf);
 
-    /* The second entry is our Code Segment. The base address
-    *  is 0, the limit is 4GBytes, it uses 4KByte granularity,
-    *  uses 32-bit opcodes, and is a Code Segment descriptor.
-    *  Please check the table above in the tutorial in order
-    *  to see exactly what each value means */
-    init_gdt(gdt, GDT_BASE, 0xFFFFFFFF, 0x9A, 0xCF);
+    /* user code */
+    init_gdt(&mut GDT.lock().gdt[4], 0, 0xffffffff, 0xfb, 0xcf);
+    /* user data */
+    init_gdt(&mut GDT.lock().gdt[5], 0, 0xffffffff, 0xf3, 0xcf);
+    /* user stack */
+    init_gdt(&mut GDT.lock().gdt[6], 0, 0xffffffff, 0xf7, 0xcf);
 
-    /* The third entry is our Data Segment. It's EXACTLY the
-    *  same as our code segment, but the descriptor type in
-    *  this entry's access byte says it's a Data Segment */
-    // init_gdt(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-
-    /* Flush out the old GDT and install the new changes! */
+    /* Flush out the old GDT and install the new changes */
     unsafe {
-        gdt_flush(gp);
+        gdt_flush(&mut gp);
     }
 }

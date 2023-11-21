@@ -1,30 +1,20 @@
-# This will set up our new segment registers. We need to do
-# something special in order to set CS. We do what is called a
-# far jump. A jump that includes a segment as well as an offset.
-# This is declared in C as 'extern void gdt_flush();'
-# .extern _gp            # Says that '_gp' is in another file
-
-
-# gdt_flush:
-#     lgdt [_gp]        # Load the GDT with our '_gp' which is a special pointer
-#    mov ax, 0x10      # 0x10 is the offset in the GDT to our data segment
-#     mov ds, ax
-#     mov es, ax
-#     mov fs, ax
-#     mov gs, ax
-#     mov ss, ax
-#     jmp 0x08:flush2   # 0x08 is the offset to our code segment: Far jump!
-# flush2:
-#     ret               # Returns back to the C code!
-#.section .text
-.global gdt_flush     # Allows the C code to link to this
+.global gdt_flush
+.global check_gdt
 .section .text
+
 gdt_flush:
-    lgdt _gp
+    movl 4(%esp), %eax             # 1st argument to this function is a pointer to a GdtPtr struct containing the limit and location of the Gdt.
+    lgdt (%eax)                    # Load the new Gdt
+    ljmp $0x8, $complete_flush
+
+# https://stackoverflow.com/questions/23978486/far-jump-in-gdt-in-bootloader
+
+complete_flush:
     mov $0x10, %ax
     mov %ax, %ds
+    mov %ax, %ss
+    mov $0x0, %ax
     mov %ax, %es
     mov %ax, %fs
     mov %ax, %gs
-    #jmp $0x08, $next
     ret
