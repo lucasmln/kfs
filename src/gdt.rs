@@ -6,6 +6,7 @@ extern "C" {
     fn gdt_flush(gp: &mut GdtPtr);
 }
 
+#[derive(Debug)]
 #[repr(C, packed)]
 pub struct GdtEntry {
     pub limit_low: u16,
@@ -31,6 +32,7 @@ impl Default for GdtEntry {
     }
 }
 
+#[derive(Debug)]
 #[repr(C, packed)]
 pub struct GdtPtr {
     pub limit: u16,
@@ -58,6 +60,9 @@ pub fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granula
 
 use lazy_static::lazy_static;
 use spin::Mutex;
+
+use crate::{println, print};
+
 lazy_static! {
     static ref GDT: Mutex<GdtTable> = Mutex::new(GdtTable::default());
 }
@@ -90,5 +95,20 @@ pub fn gdt_install()
     /* Flush out the old GDT and install the new changes */
     unsafe {
         gdt_flush(&mut gp);
+    }
+}
+
+#[allow(dead_code)]
+pub fn print_gdt() {
+    let mut dtr = GdtPtr::default();
+
+    unsafe {
+        core::arch::asm!("sgdt [{0}]", in(reg) &mut dtr);
+        println!("{:?}", dtr);
+        let gdt_entry_amout = (dtr.limit + 1) / 8;
+        for i in 0..gdt_entry_amout {
+            let gdt = &mut *((dtr.base + (i * size_of::<GdtEntry>() as u16) as u32) as *mut GdtEntry);
+            println!("{:x?}", gdt);
+        }
     }
 }
