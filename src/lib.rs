@@ -6,6 +6,7 @@ mod interface;
 mod utils;
 mod gdt;
 mod io;
+mod idt;
 
 use interface::Colors;
 use crate::gdt::gdt_install;
@@ -16,6 +17,7 @@ use crate::interface::{set_color, reset_screen, get_kernel_address};
 pub extern "C" fn main() -> ! {
 
     gdt_install();
+    idt::idt_init();
 
     reset_screen();
     utils::print_header();
