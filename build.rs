@@ -8,6 +8,6 @@ fn main() {
 		.flag("-Wall")
 		.flag("-m32")
 		.flag("-Wextra")
-		.file("src/gdt.s")
+		.file("src/gdt/gdt.s")
 		.compile("gdt-lib");
 }
