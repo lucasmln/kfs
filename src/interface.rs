@@ -176,6 +176,17 @@ pub fn set_color(color: Colors) {
     INTERFACE.lock().color = color;
 }
 
+pub fn color_str_to_color(s: &str) -> Option<Colors> {
+    match s {
+        "bright_red" => { return Some(Colors::BrightRed) }
+        _ => { return None }
+    }
+}
+
+pub fn get_color() -> Colors {
+    return INTERFACE.lock().color;
+}
+
 pub fn reset_screen() {
     INTERFACE.lock().reset_screen()
 }

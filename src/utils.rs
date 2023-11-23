@@ -1,3 +1,5 @@
+use atoi::FromRadix10;
+
 use crate::{interface::{set_color, Colors}, print, println};
 
 pub fn print_header() {
@@ -89,4 +91,12 @@ pub fn test_color() {
     println!("Lucas ABCDEFGHIJKLMNOPQRSTUVXYZ !###$//.;");
     set_color(Colors::BrightWhite);
     println!("Lucas ABCDEFGHIJKLMNOPQRSTUVXYZ !###$//.;");
+}
+
+/// Return the parsed integer and remaining slice if successful.
+pub fn atoi_with_rest<I: FromRadix10>(text: &[u8]) -> Option<(&[u8], I)> {
+    match I::from_radix_10(text) {
+        (_, 0) => None,
+        (n, used) => Some((&text[used..], n)),
+    }
 }
