@@ -56,7 +56,10 @@ fn echo(a: core::str::Split<'_, char>) {
     println!();
 }
 
-fn get_entry_amout_per_line(smod: u8) -> u32 {
+fn get_entry_amout_per_line(format: u8, smod: u8) -> u32 {
+    if format == b's' {
+        return 1;
+    }
     match smod {
         b'b' => { return 8; }
         b'h' => { return 8; }
@@ -66,7 +69,7 @@ fn get_entry_amout_per_line(smod: u8) -> u32 {
     }
 }
 
-fn get_entry_len(smod: u8) -> u32 {
+fn get_entry_len(format: u8, smod: u8) -> u32 {
     match smod {
         b'b' => { return 1; }
         b'h' => { return 2; }
@@ -108,14 +111,23 @@ fn print_memory(command: &str, address_str: Option<&str>) {
             }
         }
     }
-    // 1 for byte, 2
-    let entry_amount_per_line = get_entry_amout_per_line(smod);
-    let entry_len = get_entry_len(smod);
+    // 1/b/byte, 2/h/halfword, 4/w/word, 8/g/giant_word
+    let entry_amount_per_line = get_entry_amout_per_line(format, smod);
+    let entry_len = get_entry_len(format, smod);
     for i in 0..size {
         if i % entry_amount_per_line == 0 {
-            print!("\n{:x}: ", address);
+            print!("\n{:#x}: ", address);
         }
         match format {
+            b'o' => {
+                match smod {
+                    b'b' => { print!("{:#0o} ", unsafe { *get_kernel_address::<u8>(address) } ); }
+                    b'h' => { print!("{:#0o} ", unsafe { *get_kernel_address::<u16>(address) } ); }
+                    b'w' => { print!("{:#0o} ", unsafe { *get_kernel_address::<u32>(address) } ); }
+                    b'g' => { print!("{:#0o} ", unsafe { *get_kernel_address::<u64>(address) } ); }
+                    _ => {}
+                }
+            }
             b'x' => {
                 match smod {
                     b'b' => { print!("{:#04x} ", unsafe { *get_kernel_address::<u8>(address) } ); }
@@ -150,6 +162,54 @@ fn print_memory(command: &str, address_str: Option<&str>) {
                     b'w' => { print!("{:032b} ", unsafe { *get_kernel_address::<u32>(address) } ); }
                     b'g' => { print!("{:064b} ", unsafe { *get_kernel_address::<u64>(address) } ); }
                     _ => {}
+                }
+            }
+            b'f' => {
+                match smod {
+                    b'b' => { print!("unsupported"); }
+                    b'h' => { print!("unsupported"); }
+                    b'w' => { print!("{:} ", unsafe { *get_kernel_address::<f32>(address) } ); }
+                    b'g' => { print!("{:} ", unsafe { *get_kernel_address::<f64>(address) } ); }
+                    _ => {}
+                }
+            }
+            b'a' => {
+                match smod {
+                    b'b' => { print!("{:#x} ", unsafe { *get_kernel_address::<u8>(address) } ); }
+                    b'h' => { print!("{:#x} ", unsafe { *get_kernel_address::<u16>(address) } ); }
+                    b'w' => { print!("{:#x} ", unsafe { *get_kernel_address::<u32>(address) } ); }
+                    b'g' => { print!("{:#x} ", unsafe { *get_kernel_address::<u64>(address) } ); }
+                    _ => {}
+                }
+            }
+            b'c' => {
+                let c: i8;
+                unsafe { c = *get_kernel_address::<i8>(address); };
+                if (33..126).contains(&c) {
+                    print!("{} {} ", c, c as u8 as char);
+                }
+                else if c == 32 {
+                    print!("{} ' ' ", c);
+                }
+                else {
+                    print!("{} '\\{:o}' ", c, c);
+                }
+            }
+            b's' => {
+                unsafe {
+                    loop {
+                        let c = *get_kernel_address::<i8>(address);
+                        if c == 0 {
+                            break;
+                        }
+                        if (32..126).contains(&c) {
+                            print!("{}", c as u8 as char);
+                        }
+                        else {
+                            print!("\\{:o}", c);
+                        }
+                        address += 1;
+                    }
                 }
             }
             _ => {}
