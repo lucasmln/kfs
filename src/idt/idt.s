@@ -1,7 +1,10 @@
 
 .section .text
 .extern exception_handler
+.extern irq_handler
 
+
+# Macro to define isr with error code
 .macro isr_err_stub n
 .global isr_stub_\n
 .type isr_stub_\n, @function
@@ -12,16 +15,59 @@ isr_stub_\n:
     jmp isr_common_stub
 .endm
 
+
+# Macro to define isr without error code
 .macro isr_no_err_stub n
 .global isr_stub_\n
 .type isr_stub_\n, @function
 
 isr_stub_\n:
     cli
-    push $0
+    push $0 # Pushing a dummy error code
     push $\n
     jmp isr_common_stub
 .endm
+
+
+.macro IRQ  n
+.global irq_\n
+.type irq_\n, @function
+
+irq_\n:
+    cli
+    push $0
+    push $\n
+    jmp irq_common_stub
+
+.endm
+
+
+.macro SAVE_REGS
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    mov $0x10, %ax   # Load the Kernel Data Segment descriptor!
+    mov %ax, %ds
+    mov %ax, %ss
+    mov $0x0, %ax
+    mov %ax, %es
+    mov %ax, %fs 
+    mov %ax, %gs
+    mov %esp, %eax   # Push us the stack
+    push %eax
+.endm
+
+.macro RESTORE_REGS
+    pop %eax
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+.endm
+
 
 # Define exception handlers
 isr_no_err_stub 0
@@ -58,31 +104,39 @@ isr_err_stub    30
 isr_no_err_stub 31
 
 
+# Define IRQ
+IRQ 0
+IRQ 1
+IRQ 2
+IRQ 3
+IRQ 4
+IRQ 5
+IRQ 6
+IRQ 7
+IRQ 8
+IRQ 9
+IRQ 10
+IRQ 11
+IRQ 12
+IRQ 13
+IRQ 14
+IRQ 15
+
+
+irq_common_stub:
+SAVE_REGS
+    mov $irq_handler, %eax
+    call %eax
+RESTORE_REGS
+    add $8, %esp     # Cleans up the pushed error code and pushed ISR number
+    iret
+
+
 isr_common_stub:
-    pusha
-    push %ds
-    push %es
-    push %fs
-    push %gs
-    mov $0x10, %ax   # Load the Kernel Data Segment descriptor!
-    mov %ax, %ds
-    mov %ax, %ss
-    mov $0x0, %ax
-    mov %ax, %es
-    mov %ax, %fs 
-    mov %ax, %gs
-    mov %esp, %eax   # Push us the stack
-    push %eax
-    #mov exception_handler, %eax
-    #call %eax       # A special call, preserves the 'eip' register
-    #push (esp)
-    call exception_handler
-    pop %eax
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
-    popa
+SAVE_REGS
+    mov $exception_handler, %eax
+    call %eax
+RESTORE_REGS
     add $8, %esp     # Cleans up the pushed error code and pushed ISR number
     iret
 
@@ -104,13 +158,3 @@ test_function:
     mov $0, %cx
     div %cx
     ret
-
-
-
-# .global isr_stub_table
-# isr_stub_table:
-# .set i 0 
-# .rep 32 
-#     dd isr_stub_\i
-#     inc  
-# .endr
