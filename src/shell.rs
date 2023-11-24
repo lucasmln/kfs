@@ -1,27 +1,60 @@
-use crate::{gdt, print, println, interface::{self, get_color, Colors, get_kernel_address}, utils};
+use crate::{gdt, print, println, interface::{self, get_color, Colors}, utils::{self, get_kernel_address}};
 
 fn print_gdt() {
     gdt::print_gdt();
 }
 
 fn print_help(command: Option<&str>) {
-    let main_help = "This is the main help command.\nAvailable commands:
-    - help
-    - echo
+    let help_help = "This is the main help command.\nAvailable commands:
+    - help <command>
+    - echo <string>
     - print_gdt
     - print_idt
-    - set_color
+    - set_color <color>
+    - x <address>
 Type `help <command>` for help on a specific command.";
-    let set_color = "set color help";
-    
+    let help_echo = "echo:\nDisplay the line of text submitted";
+    let help_print_gdt = "print_gdt:\nRetreive and print the gdt pointer retreived from `sgdt` as well as the gdt table";
+    let help_print_idt = "print_idt:\nRetreive and print the idt pointer retreived from `sidt` as well as the idt table";
+    let help_set_color = "set_color:\nChoose the color of the text outputted to the screen\nChoose from:
+    - black\n    - blue\n    - green\n    - cyan\n    - red\n    - purple\n    - yellow\n    - white
+    - grey\n    - bright_blue\n    - bright_green\n    - bright_cyan\n    - bright_red
+    - bright_purple\n    - bright_yellow\n    - bright_white\n";
+    let help_x = "x:\nDisplays the memory contents at a given address using the specified format.
+    x [Address expression]
+    x/[Format] [Address expression]
+    x/[Length][Format] [Address expression]
+
+    Format:
+        o - octal
+        x - hexadecimal
+        d - decimal
+        u - unsigned decimal
+        t - binary
+        f - floating point
+        a - address
+        c - char
+        s - string
+
+    Size modifier:
+        b - byte
+        h - halfword (16-bit value)
+        w - word (32-bit value)
+        g - giant word (64-bit value)";
+
     match command {
         Some(x) => {
             match x {
-                "set_color" => { println!("{}", set_color); }
-                _ => {}
+                "help" => { println!("{}", help_help); }
+                "echo" => { println!("{}", help_echo); }
+                "print_gdt" => { println!("{}", help_print_gdt); }
+                "print_idt" => { println!("{}", help_print_idt); }
+                "set_color" => { println!("{}", help_set_color); }
+                "x" => { println!("{}", help_x); }
+                _ => { unknown_command(Some(x)); }
             }
         }
-        None => { println!("{}", main_help); }
+        None => { println!("{}", help_help); }
     }
 }
 
@@ -220,9 +253,9 @@ fn print_memory(command: &str, address_str: Option<&str>) {
 }
 
 pub fn interpret(s: &str) {
-
     let mut a = s.split(' ');
     let command = a.next();
+
     match command {
         Some(x) => {
             match x {

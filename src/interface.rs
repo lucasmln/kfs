@@ -178,7 +178,22 @@ pub fn set_color(color: Colors) {
 
 pub fn color_str_to_color(s: &str) -> Option<Colors> {
     match s {
+        "black" => { return Some(Colors::Black) }
+        "blue" => { return Some(Colors::Blue) }
+        "green" => { return Some(Colors::Green) }
+        "cyan" => { return Some(Colors::Cyan) }
+        "red" => { return Some(Colors::Red) }
+        "purple" => { return Some(Colors::Purple) }
+        "yellow" => { return Some(Colors::Yellow) }
+        "white" => { return Some(Colors::White) }
+        "grey" => { return Some(Colors::Grey) }
+        "bright_blue" => { return Some(Colors::BrightBlue) }
+        "bright_green" => { return Some(Colors::BrightGreen) }
+        "bright_cyan" => { return Some(Colors::BrightCyan) }
         "bright_red" => { return Some(Colors::BrightRed) }
+        "bright_purple" => { return Some(Colors::BrightPurple) }
+        "bright_yellow" => { return Some(Colors::BrightYellow) }
+        "bright_white" => { return Some(Colors::BrightWhite) }
         _ => { return None }
     }
 }
@@ -189,9 +204,4 @@ pub fn get_color() -> Colors {
 
 pub fn reset_screen() {
     INTERFACE.lock().reset_screen()
-}
-
-pub fn get_kernel_address<T>(address: u32) -> *const T
-{
-    return address as *const T;
 }

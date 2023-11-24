@@ -100,3 +100,8 @@ pub fn atoi_with_rest<I: FromRadix10>(text: &[u8]) -> Option<(&[u8], I)> {
         (n, used) => Some((&text[used..], n)),
     }
 }
+
+pub fn get_kernel_address<T>(address: u32) -> *const T
+{
+    return address as *const T;
+}

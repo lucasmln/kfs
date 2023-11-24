@@ -6,11 +6,13 @@ mod interface;
 mod utils;
 mod gdt;
 mod io;
+mod shell;
 
 use interface::Colors;
 use crate::gdt::gdt_install;
 
-use crate::interface::{set_color, reset_screen, get_kernel_address};
+use crate::interface::{set_color, reset_screen};
+use crate::utils::get_kernel_address;
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
