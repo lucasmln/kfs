@@ -13,6 +13,10 @@ use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen, get_kernel_address};
 
+extern "C" {
+    fn test_function();
+}
+
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
@@ -25,7 +29,9 @@ pub extern "C" fn main() -> ! {
     println!();
 
     println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
-
+    unsafe {
+        test_function();
+    }
     loop {}
 }
 

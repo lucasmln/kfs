@@ -7,11 +7,9 @@
 .type isr_stub_\n, @function
 
 isr_stub_\n:
-    sub $4, %esp
-    mov \n, %esp
-    call exception_handler
-    add $4, %esp
-    iret
+    cli
+    push $\n
+    jmp isr_common_stub
 .endm
 
 .macro isr_no_err_stub n
@@ -19,11 +17,10 @@ isr_stub_\n:
 .type isr_stub_\n, @function
 
 isr_stub_\n:
-    sub $4, %esp
-    mov \n, %esp
-    call exception_handler
-    add $4, %esp
-    iret
+    cli
+    push $0
+    push $\n
+    jmp isr_common_stub
 .endm
 
 # Define exception handlers
@@ -61,6 +58,36 @@ isr_err_stub    30
 isr_no_err_stub 31
 
 
+isr_common_stub:
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    mov $0x10, %ax   # Load the Kernel Data Segment descriptor!
+    mov %ax, %ds
+    mov %ax, %ss
+    mov $0x0, %ax
+    mov %ax, %es
+    mov %ax, %fs 
+    mov %ax, %gs
+    mov %esp, %eax   # Push us the stack
+    push %eax
+    #mov exception_handler, %eax
+    #call %eax       # A special call, preserves the 'eip' register
+    #push (esp)
+    call exception_handler
+    pop %eax
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+    add $8, %esp     # Cleans up the pushed error code and pushed ISR number
+    iret
+
+
+
 .global load_idt
 
 load_idt:
@@ -68,6 +95,16 @@ load_idt:
     lidt (%eax)
     sti
     ret
+
+
+.global test_function
+test_function:
+    mov $0, %ax
+    xor %dx, %dx
+    mov $0, %cx
+    div %cx
+    ret
+
 
 
 # .global isr_stub_table

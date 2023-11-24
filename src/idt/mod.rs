@@ -6,6 +6,7 @@ use crate::{print, println};
 const IDT_ENTRY_AMOUT: usize = 256;
 
 extern "C" {
+    fn test_function();
     fn isr_stub_0();
     fn isr_stub_1();
     fn isr_stub_2();
@@ -42,8 +43,27 @@ extern "C" {
     fn load_idt(idt_table: &mut IdtPtr);
 }
 
-pub struct IsrStubTable {
-
+pub struct Regs
+{
+    gs: u32,
+    fs: u32,
+    es: u32,
+    ds: u32,
+    edi: u32,
+    esi: u32,
+    ebp: u32,
+    esp: u32,
+    ebx: u32,
+    edx: u32,
+    ecx: u32,
+    eax: u32,
+    int_no: u32,
+    err_code: u32,
+    eip: u32,
+    cs: u32,
+    eflags: u32,
+    useresp: u32,
+    ss: u32
 }
 
 #[repr(C, packed)]
@@ -144,10 +164,12 @@ pub fn idt_init() {
 }
 
 #[no_mangle]
-extern "C" fn exception_handler(n: u8) {
-    println!("Exception handler from isr {}", n);
-    unsafe {
-        core::arch::asm!("cli");
-        core::arch::asm!("hlt");
-    }
+extern "C" fn exception_handler() {
+    // if reg.int_no < 32 {
+
+        // println!("Exception handler from isr a:{}", reg.int_no);
+        unsafe {
+            core::arch::asm!("cli");
+            //core::arch::asm!("hlt");
+        }
 }
