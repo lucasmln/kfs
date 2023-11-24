@@ -29,9 +29,6 @@ pub extern "C" fn main() -> ! {
     println!();
 
     println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
-    unsafe {
-        test_function();
-    }
     loop {}
 }
 
