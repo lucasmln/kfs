@@ -7,6 +7,7 @@ mod utils;
 mod gdt;
 mod io;
 mod idt;
+mod keyboard;
 
 use interface::Colors;
 use crate::gdt::gdt_install;
@@ -28,8 +29,11 @@ pub extern "C" fn main() -> ! {
     set_color(Colors::White);
     println!();
 
-    println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
-    loop {}
+    loop {
+        unsafe {
+            core::arch::asm!("hlt");
+        }
+    }
 }
 
 #[panic_handler]
