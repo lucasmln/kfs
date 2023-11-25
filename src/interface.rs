@@ -67,7 +67,11 @@ impl Interface {
     fn set_cursor_position(&mut self) {
         // pos of the cursor is calculated the same way character are placed on the screen
         // pos should (and must) be in the range (0-WIDTH*HEIGHT-1)
-        let pos = self.y * WIDTH + self.x;
+        let mut x = self.x;
+        if x >= WIDTH {
+            x -= 1;
+        }
+        let pos = self.y * WIDTH + x;
 
         // say we are going to put the lower bits (0-7)
         io::outb(0x3D4, 0x0F);
@@ -100,7 +104,7 @@ impl Interface {
     }
 
     pub fn print_char(&mut self, character: u8) {
-        if self.x >= WIDTH {
+        if self.x >= WIDTH && character != b'\n' {
             self.x = 0;
             self.y += 1;
         }
