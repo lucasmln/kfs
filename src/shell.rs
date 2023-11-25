@@ -4,6 +4,21 @@ fn print_gdt() {
     gdt::print_gdt();
 }
 
+fn print_idt() {
+    // idt::print_idt();
+    // let mut dtr = IdtPtr::default();
+
+    // unsafe {
+    //     core::arch::asm!("sgdt [{0}]", in(reg) &mut dtr);
+    //     println!("{:?}", dtr);
+    //     let gdt_entry_amout = (dtr.limit + 1) / size_of::<IdtEntry>() as u16;
+    //     for i in 0..gdt_entry_amout {
+    //         let gdt = &mut *((dtr.base + (i * size_of::<IdtEntry>() as u16) as u32) as *mut IdtEntry);
+    //         println!("{:x?}", gdt);
+    //     }
+    // }
+}
+
 fn print_help(command: Option<&str>) {
     let help_help = "This is the main help command.\nAvailable commands:
     - help <command>
@@ -103,6 +118,9 @@ fn get_entry_amout_per_line(format: u8, smod: u8) -> u32 {
 }
 
 fn get_entry_len(format: u8, smod: u8) -> u32 {
+    if format == b's' {
+        return 0;
+    }
     match smod {
         b'b' => { return 1; }
         b'h' => { return 2; }
@@ -133,7 +151,7 @@ fn print_memory(command: &str, address_str: Option<&str>) {
             (command, size) = utils::atoi_with_rest::<u32>(command).unwrap_or((command, 1));
         }
         for char in command {
-            if [b'o', b'x', b'd', b'u', b't', b'f', b'a', b'c', b's', b'i'].contains(char) {
+            if [b'o', b'x', b'd', b'u', b't', b'f', b'a', b'c', b's'].contains(char) {
                 format = *char;
             }
             else if [b'b', b'h', b'w', b'g'].contains(char) {
@@ -149,7 +167,7 @@ fn print_memory(command: &str, address_str: Option<&str>) {
     let entry_len = get_entry_len(format, smod);
     for i in 0..size {
         if i % entry_amount_per_line == 0 {
-            print!("\n{:#x}: ", address);
+            print!("{:#x}: ", address);
         }
         match format {
             b'o' => {
@@ -230,7 +248,8 @@ fn print_memory(command: &str, address_str: Option<&str>) {
             }
             b's' => {
                 unsafe {
-                    loop {
+                    print!("\"");
+                    for _ in 0..200 {
                         let c = *get_kernel_address::<i8>(address);
                         if c == 0 {
                             break;
@@ -243,13 +262,19 @@ fn print_memory(command: &str, address_str: Option<&str>) {
                         }
                         address += 1;
                     }
+                    print!("\"");
+                    if *get_kernel_address::<i8>(address) != 0 {
+                        print!("...");
+                    }
                 }
             }
             _ => {}
         }
+        if i % entry_amount_per_line == 0 {
+            println!();
+        }
         address += entry_len;
     }
-    // println!("{} {} {}", format, size, smod);
 }
 
 pub fn interpret(s: &str) {
@@ -275,18 +300,4 @@ pub fn interpret(s: &str) {
         }
         None => { unknown_command(command); }
     }
-}
-
-pub fn print_idt() {
-    // let mut dtr = IdtPtr::default();
-
-    // unsafe {
-    //     core::arch::asm!("sgdt [{0}]", in(reg) &mut dtr);
-    //     println!("{:?}", dtr);
-    //     let gdt_entry_amout = (dtr.limit + 1) / size_of::<IdtEntry>() as u16;
-    //     for i in 0..gdt_entry_amout {
-    //         let gdt = &mut *((dtr.base + (i * size_of::<IdtEntry>() as u16) as u32) as *mut IdtEntry);
-    //         println!("{:x?}", gdt);
-    //     }
-    // }
 }
