@@ -55,12 +55,12 @@ irq_\n:
     mov %ax, %es
     mov %ax, %fs 
     mov %ax, %gs
-    mov %esp, %eax   # Push us the stack
-    push %eax
+    #mov %esp, %eax   # Push us the stack
+    #push %eax
 .endm
 
 .macro RESTORE_REGS
-    pop %eax
+    #pop %eax
     pop %gs
     pop %fs
     pop %es

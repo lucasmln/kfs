@@ -2,7 +2,7 @@ use core::mem::size_of;
 use core::ffi::c_void;
 
 use crate::{print, println};
-use crate::io::outb;
+use crate::io::{outb, inb};
 
 const IDT_ENTRY_AMOUT: usize = 256;
 
@@ -233,8 +233,9 @@ extern "C" fn exception_handler(reg: Regs) {
 
 #[no_mangle]
 extern "C" fn irq_handler(reg: Regs) {
-    if reg.err_code == 1 {
+    if reg.int_no == 1 {
         println!("Exception handler from IRQ a:{:?}", reg);
+        println!("{}", inb(0x60));
     }
     unsafe {
         // core::arch::asm!("cli");
