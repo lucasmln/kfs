@@ -1,5 +1,5 @@
 fn main() {
-	println!("cargo:rerun-if-changed=src/gdt.s");
+	println!("cargo:rerun-if-changed=src/gdt/gdt.s");
 	println!("cargo:rerun-if-changed=src/idt/idt.s");
 	cc::Build::new()
 		.flag("-nostdlib")
