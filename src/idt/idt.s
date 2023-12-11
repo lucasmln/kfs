@@ -1,5 +1,5 @@
 
-.section .text
+.text
 .extern exception_handler
 .extern irq_handler
 
@@ -7,7 +7,7 @@
 # Macro to define isr with error code
 .macro isr_err_stub n
 .global isr_stub_\n
-.type isr_stub_\n, @function
+# .type isr_stub_\n, @function
 
 isr_stub_\n:
     cli
@@ -19,7 +19,7 @@ isr_stub_\n:
 # Macro to define isr without error code
 .macro isr_no_err_stub n
 .global isr_stub_\n
-.type isr_stub_\n, @function
+# .type isr_stub_\n, @function
 
 isr_stub_\n:
     cli
@@ -31,7 +31,7 @@ isr_stub_\n:
 
 .macro IRQ  n
 .global irq_\n
-.type irq_\n, @function
+# .type irq_\n, @function
 
 irq_\n:
     cli
@@ -126,7 +126,7 @@ IRQ 15
 irq_common_stub:
 SAVE_REGS
     mov $irq_handler, %eax
-    call %eax
+    call *%eax
 RESTORE_REGS
     add $8, %esp     # Cleans up the pushed error code and pushed ISR number
     iret
@@ -135,7 +135,7 @@ RESTORE_REGS
 isr_common_stub:
 SAVE_REGS
     mov $exception_handler, %eax
-    call %eax
+    call *%eax
 RESTORE_REGS
     add $8, %esp     # Cleans up the pushed error code and pushed ISR number
     iret

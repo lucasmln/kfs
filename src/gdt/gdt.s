@@ -1,6 +1,6 @@
 .global gdt_flush
 .global check_gdt
-.section .text
+.text
 
 gdt_flush:
     movl 4(%esp), %eax             # 1st argument to this function is a pointer to a GdtPtr struct containing the limit and location of the Gdt.
