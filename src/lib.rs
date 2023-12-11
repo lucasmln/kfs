@@ -6,25 +6,34 @@ mod interface;
 mod utils;
 mod gdt;
 mod io;
+mod idt;
+mod keyboard;
 
 use interface::Colors;
 use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen, get_kernel_address};
 
+extern "C" {
+    fn test_function();
+}
+
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
     gdt_install();
+    idt::idt_init();
 
     reset_screen();
     utils::print_header();
     set_color(Colors::White);
     println!();
 
-    println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
-
-    loop {}
+    loop {
+        unsafe {
+            core::arch::asm!("hlt");
+        }
+    }
 }
 
 #[panic_handler]
