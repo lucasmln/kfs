@@ -16,6 +16,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --target build/x86.json --verbose
-      
+
+    - name: Install rust toolchain
+      run: |
+        rustup update nightly &&
+        rustup default nightly &&
+        rustup target add i686-unknown-linux-gnu
+  
+    - name: Build project
+      run: |
+        cargo build --verbose
