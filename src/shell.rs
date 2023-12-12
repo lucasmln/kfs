@@ -1,22 +1,11 @@
-use crate::{gdt, print, println, interface::{self, get_color, Colors}, utils::{self, get_kernel_address}};
+use crate::{gdt, print, println, interface::{self, get_color, Colors}, utils::{self, get_kernel_address}, idt};
 
 fn print_gdt() {
     gdt::print_gdt();
 }
 
 fn print_idt() {
-    // idt::print_idt();
-    // let mut dtr = IdtPtr::default();
-
-    // unsafe {
-    //     core::arch::asm!("sgdt [{0}]", in(reg) &mut dtr);
-    //     println!("{:?}", dtr);
-    //     let gdt_entry_amout = (dtr.limit + 1) / size_of::<IdtEntry>() as u16;
-    //     for i in 0..gdt_entry_amout {
-    //         let gdt = &mut *((dtr.base + (i * size_of::<IdtEntry>() as u16) as u32) as *mut IdtEntry);
-    //         println!("{:x?}", gdt);
-    //     }
-    // }
+    idt::print_idt();
 }
 
 fn print_help(command: Option<&[u8]>) {
