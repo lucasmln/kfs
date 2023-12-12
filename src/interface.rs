@@ -137,6 +137,20 @@ impl Interface {
         self.set_cursor_position();
     }
 
+    pub fn del(&mut self) {
+        if self.x == 0 {
+            if self.y > 0 {
+                self.y -= 1;
+            }
+            self.x = WIDTH;
+        }
+        else {
+            self.x -= 1;
+        }
+        self.vga_address.cells[self.y][self.x].character = b' ';
+        self.set_cursor_position();
+    }
+
 }
 
 use core::fmt::{self, Write};
@@ -169,6 +183,17 @@ macro_rules! print {
     ($($arg:tt)*) => {
         crate::interface::_print(format_args!($($arg)*));
     };
+}
+
+#[macro_export]
+macro_rules! printdel {
+    () => {
+        crate::interface::_del();
+    };
+}
+
+pub fn _del() {
+    INTERFACE.lock().del()
 }
 
 // I don't know how to make this function only visible to this file
