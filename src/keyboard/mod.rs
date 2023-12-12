@@ -163,15 +163,13 @@ fn key_press(knbr: u8) {
                     state.caps_lock = true;
                 }
                 fr::Kvalue::Del => {
-                    shell::read(127);
+                    shell::read(&[127]);
                 }
                 _ => {
                     if is_switch_kb(knbr, &state) {
                         state.lang_id = (state.lang_id + 1) % 2;
                     } else {
-                        for c in key.as_bytes() {
-                            shell::read(*c);
-                        }
+                        shell::read(key.as_bytes());
                     }
                 }
             }

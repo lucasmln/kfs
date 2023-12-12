@@ -15,6 +15,7 @@ fn print_help(command: Option<&[u8]>) {
     - print_gdt
     - print_idt
     - set_color <color>
+    - panic
     - x <address>
 Type `help <command>` for help on a specific command.";
     let help_echo = "echo:\nDisplay the line of text submitted";
@@ -24,6 +25,7 @@ Type `help <command>` for help on a specific command.";
     - black\n    - blue\n    - green\n    - cyan\n    - red\n    - purple\n    - yellow\n    - white
     - grey\n    - bright_blue\n    - bright_green\n    - bright_cyan\n    - bright_red
     - bright_purple\n    - bright_yellow\n    - bright_white\n";
+    let help_panic = "panic:\nJust call panic!();";
     let help_x = "x:\nDisplays the memory contents at a given address using the specified format.
     x [Address expression]
     x/[Format] [Address expression]
@@ -57,6 +59,7 @@ Type `help <command>` for help on a specific command.";
             else if x.starts_with("print_gdt".as_bytes()) { println!("{}", help_print_gdt); }
             else if x.starts_with("print_idt".as_bytes()) { println!("{}", help_print_idt); }
             else if x.starts_with("set_color".as_bytes()) { println!("{}", help_set_color); }
+            else if x.starts_with("panic".as_bytes()) { println!("{}", help_panic); }
             else if x.starts_with("x".as_bytes()) { println!("{}", help_x); }
             else { unknown_command(Some(x)); }
         }
@@ -85,7 +88,9 @@ fn set_color(s: Option<&[u8]>) {
 fn unknown_command(command: Option<&[u8]>) {
     let command = command.unwrap_or("None".as_bytes());
 
-    println!("Unknown command {:#?} type `help` for a list of available commands.", command);
+    print!("Unknown command ");
+    for c in command { print!("{}", *c as char); }
+    println!(" type `help` for a list of available commands.");
 }
 
 fn echo(a: core::slice::Split<'_, u8, impl FnMut(&u8) -> bool>) {
@@ -133,7 +138,7 @@ fn print_memory(mut command: &[u8], address_str: Option<&[u8]>) {
     let mut smod = b'w';
 
     let mut address: usize;
-    let address_str = address_str.unwrap();
+    let address_str = address_str.unwrap_or(&[b'0']);
     if address_str.starts_with(b"0x") {
         (address, _) = usize::from_radix_16(&address_str[2..])
     }
@@ -277,7 +282,7 @@ fn print_memory(mut command: &[u8], address_str: Option<&[u8]>) {
 pub fn interpret(mut shell_str: &[u8])
 {
     while shell_str.len() >= 1 && shell_str[shell_str.len() - 1] == 0 {
-        shell_str = shell_str.strip_suffix(&[0]).unwrap();
+        shell_str = shell_str.strip_suffix(&[0]).unwrap_or(&[]);
     }
 
     let mut shell_str_splitted = shell_str.split(|x| *x == b' ');
@@ -290,6 +295,7 @@ pub fn interpret(mut shell_str: &[u8])
             else if x.starts_with("print_gdt".as_bytes()) { print_gdt(); }
             else if x.starts_with("print_idt".as_bytes()) { print_idt(); }
             else if x.starts_with("set_color".as_bytes()) { set_color(shell_str_splitted.next()); }
+            else if x.starts_with("panic".as_bytes()) { panic!("You called panic !"); }
             else if x.starts_with("x".as_bytes()) { print_memory(x, shell_str_splitted.next()); }
             else { unknown_command(Some(x)); }
         }
@@ -297,29 +303,38 @@ pub fn interpret(mut shell_str: &[u8])
     }
 }
 
-pub fn read(c: u8) {
+pub fn read(key: &[u8]) {
     static mut C_LEN: usize = 0;
     static mut BUFFER: [u8; 100] = [0; 100];
 
-    match c {
-        10 => {
-            println!();
-            unsafe {
-                interpret(&mut BUFFER);
-                C_LEN = 0;
-                for e in BUFFER.iter_mut() { *e = 0; }
+    for c in key {
+        match c {
+            10 => {
+                println!();
+                unsafe {
+                    interpret(&mut BUFFER);
+                    C_LEN = 0;
+                    for e in BUFFER.iter_mut() { *e = 0; }
+                }
+                print_prompt();
             }
-            print_prompt();
-        }
-        127 => {
-            printdel!();
-        }
-        _ => {
-            print!("{}", c as char);
-            unsafe {
-                if C_LEN < 99 {
-                    BUFFER[C_LEN] = c;
-                    C_LEN += 1;            
+            127 => {
+                unsafe {
+                    if C_LEN > 0 {
+                        BUFFER[C_LEN] = b'\x00';
+                        C_LEN -= 1;
+                        printdel!();
+                    }
+                }
+
+            }
+            _ => {
+                print!("{}", *c as char);
+                unsafe {
+                    if C_LEN < 99 {
+                        BUFFER[C_LEN] = *c;
+                        C_LEN += 1;
+                    }
                 }
             }
         }
