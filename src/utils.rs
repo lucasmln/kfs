@@ -9,23 +9,26 @@ pub fn print_header() {
     let filename_color = Colors::BrightPurple;
 
     set_color(border_color);
-    print!("/* ************************************************************************** */");
-    print!("/*                                                                            */");
+    println!("/* ************************************************************************** */");
+    println!("/*                                                                            */");
     print!("/*                                                        ");
     set_color(ft_color);
     print!(":::      ::::::::");
     set_color(border_color);
-    print!("   *//*   ");
+    println!("   */");
+    print!("/*   ");
     set_color(filename_color);
     print!("main.rs                                            ");
     set_color(ft_color);
     print!(":+:      :+:    :+:");
     set_color(border_color);
-    print!("   *//*                                         ,          ");
+    println!("   */");
+    print!("/*                                         ,          ");
     set_color(ft_color);
     print!("+:+ +:+         +:+");
     set_color(border_color);
-    print!("     *//*   By: ");
+    println!("     */");
+    print!("/*   By: ");
     set_color(name_color);
     print!("Arthur");
     set_color(border_color);
@@ -37,24 +40,28 @@ pub fn print_header() {
     set_color(ft_color);
     print!("+#+  +:+       +#+");
     set_color(border_color);
-    print!("        *//*                                                ");
+    println!("        */");
+    print!("/*                                                ");
     set_color(ft_color);
     print!("+#+#+#+#+#+   +#+");
     set_color(border_color);
-    print!("           *//*   Created: 2023/11/14 15:09:19 by ");
+    println!("           */");
+    print!("/*   Created: 2023/11/14 15:09:19 by ");
     set_color(name_color);
     print!("Lucas             ");
     set_color(ft_color);
     print!("#+#    #+#");
     set_color(border_color);
-    print!("             *//*   Updated: 2023/11/14 01:24:22 by ");
+    println!("             */");
+    print!("/*   Updated: 2023/11/14 01:24:22 by ");
     set_color(name_color);
     print!("Arthur           ");
     set_color(ft_color);
     print!("###   ########.fr");
     set_color(border_color);
-    print!("       *//*                                                                            */");
-    print!("/* ************************************************************************** */");
+    println!("       */");
+    println!("/*                                                                            */");
+    println!("/* ************************************************************************** */");
 }
 
 #[allow(dead_code)]
