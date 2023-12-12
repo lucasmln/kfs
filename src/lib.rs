@@ -28,7 +28,11 @@ pub extern "C" fn main() -> ! {
 
     shell::print_prompt();
 
-    loop {}
+    loop {
+        unsafe {
+            core::arch::asm!("hlt");
+        }
+    }
 
 }
 
