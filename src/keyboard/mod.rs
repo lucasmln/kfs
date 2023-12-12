@@ -3,6 +3,7 @@ pub mod fr;
 
 use crate::{print, println};
 use crate::io::{outb, inb};
+use crate::shell;
 
 
 pub struct Stack {
@@ -144,24 +145,37 @@ fn key_press(knbr: u8) {
     }
     match map.get(knbr as usize) {
         Some(key) => {
-            if knbr == fr::Kvalue::Ctrl as u8 {
-                state.lctrl = true;
-            } else if knbr == fr::Kvalue::LShift as u8 {
-                state.lshift = true;
-            } else if knbr == fr::Kvalue::Rshift as u8  {
-                state.rshift = true;
-            } else if knbr == fr::Kvalue::Option as u8  {
-                // loption and roption have the same value in macos keyboard
-                state.loption = true;
-            } else if knbr == fr::Kvalue::ShiftLock as u8 {
-                state.caps_lock = !state.caps_lock;
-            } else if is_switch_kb(knbr, &state) {
-                state.lang_id = (state.lang_id + 1) % 2;
+            match fr::get_kvalue(knbr) {
+                fr::Kvalue::Ctrl => {
+                    state.lctrl = true;
+                }
+                fr::Kvalue::LShift => {
+                    state.lshift = true;
+                }
+                fr::Kvalue::Rshift => {
+                    state.rshift = true;
+                }
+                fr::Kvalue::Option => {
+                    // loption and roption have the same value in macos keyboard
+                    state.loption = true;
+                }
+                fr::Kvalue::ShiftLock => {
+                    state.caps_lock = true;
+                }
+                fr::Kvalue::Del => {
+                    shell::read(127);
+                }
+                _ => {
+                    if is_switch_kb(knbr, &state) {
+                        state.lang_id = (state.lang_id + 1) % 2;
+                    } else {
+                        for c in key.as_bytes() {
+                            shell::read(*c);
+                        }
+                    }
+                }
             }
-            else {
-                print!("{}", key);
-            }
-            if state.active_key.has(knbr) == false {
+            if !state.active_key.has(knbr) {
                 state.active_key.push(knbr);
             }
         }
