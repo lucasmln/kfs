@@ -1,4 +1,4 @@
-use crate::{gdt, print, println, interface::{self, get_color, Colors}, utils::{self, get_kernel_address}, idt};
+use crate::{gdt, print, println, interface::{self, get_color, Colors}, utils::{self, get_kernel_address}, idt, printdel};
 
 fn print_gdt() {
     gdt::print_gdt();
@@ -310,6 +310,9 @@ pub fn read(c: u8) {
                 for e in BUFFER.iter_mut() { *e = 0; }
             }
             print_prompt();
+        }
+        127 => {
+            printdel!();
         }
         _ => {
             print!("{}", c as char);
