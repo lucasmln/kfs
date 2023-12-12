@@ -236,23 +236,6 @@ extern "C" fn exception_handler(reg: Regs) {
 extern "C" fn irq_handler(reg: Regs) {
     if reg.int_no == 1 {
         handle_keypress();
-        // println!("Exception handler from IRQ a:{:?}", reg);
-        // println!("{}", inb(0x60));
-        // let knbr = inb(0x60);
-        // match crate::keyboard::apple_fr::KMAP_AZERTY.get(knbr as usize) {
-        //     Some(key) => {
-        //         println!("{} {}", key, knbr);
-        //     }
-        //     None => {
-        //         if knbr < 128 {
-        //             println!("nbr: {}", knbr);
-        //         }
-        //         else {
-        //             println!("fin {}", knbr);
-        //         }
-        //     }
-        // }
-        // let key = crate::keyboard::en::KMAP[inb(0x60)];
     }
     unsafe {
         // core::arch::asm!("cli");
