@@ -12,11 +12,7 @@ mod keyboard;
 use interface::Colors;
 use crate::gdt::gdt_install;
 
-use crate::interface::{set_color, reset_screen, get_kernel_address};
-
-extern "C" {
-    fn test_function();
-}
+use crate::interface::{set_color, reset_screen};
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
