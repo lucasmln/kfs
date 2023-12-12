@@ -176,24 +176,25 @@ pub fn set_color(color: Colors) {
     INTERFACE.lock().color = color;
 }
 
-pub fn color_str_to_color(s: &str) -> Option<Colors> {
+pub fn color_str_to_color(s: &[u8]) -> Option<Colors> {
+    // YES, and ?
     match s {
-        "black" => { return Some(Colors::Black) }
-        "blue" => { return Some(Colors::Blue) }
-        "green" => { return Some(Colors::Green) }
-        "cyan" => { return Some(Colors::Cyan) }
-        "red" => { return Some(Colors::Red) }
-        "purple" => { return Some(Colors::Purple) }
-        "yellow" => { return Some(Colors::Yellow) }
-        "white" => { return Some(Colors::White) }
-        "grey" => { return Some(Colors::Grey) }
-        "bright_blue" => { return Some(Colors::BrightBlue) }
-        "bright_green" => { return Some(Colors::BrightGreen) }
-        "bright_cyan" => { return Some(Colors::BrightCyan) }
-        "bright_red" => { return Some(Colors::BrightRed) }
-        "bright_purple" => { return Some(Colors::BrightPurple) }
-        "bright_yellow" => { return Some(Colors::BrightYellow) }
-        "bright_white" => { return Some(Colors::BrightWhite) }
+        [b'b', b'l', b'a', b'c', b'k'] => { return Some(Colors::Black) }
+        [b'b', b'l', b'u', b'e'] => { return Some(Colors::Blue) }
+        [b'g', b'r', b'e', b'e', b'n'] => { return Some(Colors::Green) }
+        [b'c', b'y', b'a', b'n']  => { return Some(Colors::Cyan) }
+        [b'r', b'e', b'd'] => { return Some(Colors::Red) }
+        [b'p', b'u', b'r', b'p', b'l', b'e'] => { return Some(Colors::Purple) }
+        [b'y', b'e', b'l', b'l', b'o', b'w'] => { return Some(Colors::Yellow) }
+        [b'w', b'h', b'i', b't', b'e'] => { return Some(Colors::White) }
+        [b'g', b'r', b'e', b'y'] => { return Some(Colors::Grey) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'b', b'l', b'u', b'e'] => { return Some(Colors::BrightBlue) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'g', b'r', b'e', b'e', b'n'] => { return Some(Colors::BrightGreen) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'c', b'y', b'a', b'n'] => { return Some(Colors::BrightCyan) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'r', b'e', b'd'] => { return Some(Colors::BrightRed) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'p', b'u', b'r', b'p', b'l', b'e'] => { return Some(Colors::BrightPurple) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'y', b'e', b'l', b'l', b'o', b'w'] => { return Some(Colors::BrightYellow) }
+        [b'b', b'r', b'i', b'g', b'h', b't', b'_', b'w', b'h', b'i', b't', b'e'] => { return Some(Colors::BrightWhite) }
         _ => { return None }
     }
 }

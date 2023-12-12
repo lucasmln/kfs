@@ -19,7 +19,7 @@ fn print_idt() {
     // }
 }
 
-fn print_help(command: Option<&str>) {
+fn print_help(command: Option<&[u8]>) {
     let help_help = "This is the main help command.\nAvailable commands:
     - help <command>
     - echo <string>
@@ -57,23 +57,25 @@ Type `help <command>` for help on a specific command.";
         w - word (32-bit value)
         g - giant word (64-bit value)";
 
+    let _help = "help".as_bytes();
+    let _echo = "echo".as_bytes();
+    let _print_gdt = "print_gdt".as_bytes();
+
     match command {
         Some(x) => {
-            match x {
-                "help" => { println!("{}", help_help); }
-                "echo" => { println!("{}", help_echo); }
-                "print_gdt" => { println!("{}", help_print_gdt); }
-                "print_idt" => { println!("{}", help_print_idt); }
-                "set_color" => { println!("{}", help_set_color); }
-                "x" => { println!("{}", help_x); }
-                _ => { unknown_command(Some(x)); }
-            }
+            if x.starts_with("help".as_bytes()) { println!("{}", help_help); }
+            else if x.starts_with("echo".as_bytes()) { println!("{}", help_echo); }
+            else if x.starts_with("print_gdt".as_bytes()) { println!("{}", help_print_gdt); }
+            else if x.starts_with("print_idt".as_bytes()) { println!("{}", help_print_idt); }
+            else if x.starts_with("set_color".as_bytes()) { println!("{}", help_set_color); }
+            else if x.starts_with("x".as_bytes()) { println!("{}", help_x); }
+            else { unknown_command(Some(x)); }
         }
         None => { println!("{}", help_help); }
     }
 }
 
-fn print_prompt() {
+pub fn print_prompt() {
     let prompt = ">> ";
     let color = get_color();
     interface::set_color(Colors::White);
@@ -81,7 +83,7 @@ fn print_prompt() {
     interface::set_color(color);
 }
 
-fn set_color(s: Option<&str>) {
+fn set_color(s: Option<&[u8]>) {
     match s {
         Some(color_str) => {
             let color = interface::color_str_to_color(color_str).unwrap_or(Colors::White);
@@ -91,20 +93,23 @@ fn set_color(s: Option<&str>) {
     }
 }
 
-fn unknown_command(command: Option<&str>) {
-    let command = command.unwrap_or("None");
+fn unknown_command(command: Option<&[u8]>) {
+    let command = command.unwrap_or("None".as_bytes());
 
-    println!("Unknown command {} type `help` for a list of available commands.", command);
+    println!("Unknown command {:#?} type `help` for a list of available commands.", command);
 }
 
-fn echo(a: core::str::Split<'_, char>) {
+fn echo(a: core::slice::Split<'_, u8, impl FnMut(&u8) -> bool>) {
     for i in a {
-        print!("{} ", i);
+        for j in i {
+            print!("{}", *j as char);
+        }
+        print!(" ");
     }
     println!();
 }
 
-fn get_entry_amout_per_line(format: u8, smod: u8) -> u32 {
+fn get_entry_amout_per_line(format: u8, smod: u8) -> usize {
     if format == b's' {
         return 1;
     }
@@ -117,7 +122,7 @@ fn get_entry_amout_per_line(format: u8, smod: u8) -> u32 {
     }
 }
 
-fn get_entry_len(format: u8, smod: u8) -> u32 {
+fn get_entry_len(format: u8, smod: u8) -> usize {
     if format == b's' {
         return 0;
     }
@@ -130,25 +135,27 @@ fn get_entry_len(format: u8, smod: u8) -> u32 {
     }
 }
 
-fn print_memory(command: &str, address_str: Option<&str>) {
+use atoi::FromRadix16;
+use atoi::FromRadix10;
+
+fn print_memory(mut command: &[u8], address_str: Option<&[u8]>) {
     let mut format = b'x';
-    let mut size: u32 = 1;
+    let mut size: usize = 1;
     let mut smod = b'w';
 
-    let mut address: u32;
+    let mut address: usize;
     let address_str = address_str.unwrap();
-    if address_str.starts_with("0x") {
-        address = u32::from_str_radix(&address_str[2..], 16).unwrap();
+    if address_str.starts_with(b"0x") {
+        (address, _) = usize::from_radix_16(&address_str[2..])
     }
     else {
-        address = u32::from_str_radix(address_str, 10).unwrap();
+        (address, _) = usize::from_radix_10(address_str);
     }
 
-    let mut command = command.as_bytes();
     if command.contains(&b'/') && command.len() > 2 {
         command = &command[2..];
         if command[0].is_ascii_digit() {
-            (command, size) = utils::atoi_with_rest::<u32>(command).unwrap_or((command, 1));
+            (command, size) = utils::atoi_with_rest::<usize>(command).unwrap_or((command, 1));
         }
         for char in command {
             if [b'o', b'x', b'd', b'u', b't', b'f', b'a', b'c', b's'].contains(char) {
@@ -270,34 +277,55 @@ fn print_memory(command: &str, address_str: Option<&str>) {
             }
             _ => {}
         }
-        if i % entry_amount_per_line == 0 {
+        if (i + 1) % entry_amount_per_line == 0 && i != size - 1 {
             println!();
         }
         address += entry_len;
     }
+    println!();
 }
 
-pub fn interpret(s: &str) {
-    let mut a = s.split(' ');
-    let command = a.next();
+pub fn interpret(mut shell_str: &[u8])
+{
+    while shell_str.len() >= 1 && shell_str[shell_str.len() - 1] == 0 {
+        shell_str = shell_str.strip_suffix(&[0]).unwrap();
+    }
+
+    let mut shell_str_splitted = shell_str.split(|x| *x == b' ');
+    let command = shell_str_splitted.next();
 
     match command {
         Some(x) => {
-            match x {
-                "help"      => { print_help(a.next()); }
-                "echo"      => { echo(a); }
-                "print_gdt" => { print_gdt(); }
-                "print_idt" => { print_idt(); }
-                "set_color" => { set_color(a.next()); }
-                "x"         => { print_memory(x, a.next()); }
-                _           => {
-                    match &x[..2] {
-                        "x/" => { print_memory(x, a.next()) }
-                        _ => { unknown_command(Some(x)); }
-                    }
-                }
-            }
+            if x.starts_with("help".as_bytes()) { print_help(shell_str_splitted.next()); }
+            else if x.starts_with("echo".as_bytes()) { echo(shell_str_splitted); }
+            else if x.starts_with("print_gdt".as_bytes()) { print_gdt(); }
+            else if x.starts_with("print_idt".as_bytes()) { print_idt(); }
+            else if x.starts_with("set_color".as_bytes()) { set_color(shell_str_splitted.next()); }
+            else if x.starts_with("x".as_bytes()) { print_memory(x, shell_str_splitted.next()); }
+            else { unknown_command(Some(x)); }
         }
         None => { unknown_command(command); }
+    }
+}
+
+pub unsafe fn read(c: u8) {
+    static mut C_LEN: usize = 0;
+    static mut BUFFER: [u8; 100] = [0; 100];
+
+    match c {
+        10 => {
+            println!();
+            interpret(&mut BUFFER);
+            C_LEN = 0;
+            for e in BUFFER.iter_mut() { *e = 0; }
+            print_prompt();
+        }
+        _ => {
+            print!("{}", c as char);
+            if C_LEN < 99 {
+                BUFFER[C_LEN] = c;
+                C_LEN += 1;            
+            }
+        }
     }
 }

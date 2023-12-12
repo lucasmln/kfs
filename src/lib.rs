@@ -12,7 +12,6 @@ use interface::Colors;
 use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen};
-use crate::utils::get_kernel_address;
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
@@ -24,7 +23,7 @@ pub extern "C" fn main() -> ! {
     set_color(Colors::White);
     println!();
 
-    println!("{:#010x}", unsafe { *get_kernel_address::<u64>(0x808)});
+    shell::print_prompt();
 
     loop {}
 }
