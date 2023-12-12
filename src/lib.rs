@@ -6,6 +6,7 @@ mod interface;
 mod utils;
 mod gdt;
 mod io;
+mod shell;
 mod idt;
 mod keyboard;
 
@@ -25,11 +26,10 @@ pub extern "C" fn main() -> ! {
     set_color(Colors::White);
     println!();
 
-    loop {
-        unsafe {
-            core::arch::asm!("hlt");
-        }
-    }
+    shell::print_prompt();
+
+    loop {}
+
 }
 
 #[panic_handler]
