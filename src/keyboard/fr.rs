@@ -14,7 +14,7 @@ pub static KMAP: [&str; 69] = [
     ")",
     "-",
     "DEL",
-    "TAB",
+    "\t",
     "a",
     "z",
     "e",

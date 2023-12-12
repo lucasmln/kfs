@@ -86,7 +86,7 @@ pub static KMAP_SHIFT: [&str; 69] = [
     "_",
     "+",
     "DEL",
-    "TAB",
+    "\t",
     "Q",
     "W",
     "E",
