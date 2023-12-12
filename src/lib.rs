@@ -15,10 +15,6 @@ use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen};
 
-extern "C" {
-    fn test_function();
-}
-
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
@@ -32,7 +28,11 @@ pub extern "C" fn main() -> ! {
 
     shell::print_prompt();
 
-    loop {}
+    loop {
+        unsafe {
+            core::arch::asm!("hlt");
+        }
+    }
 
 }
 

@@ -3,6 +3,7 @@ use core::ffi::c_void;
 
 use crate::{print, println};
 use crate::io::{outb, inb};
+use crate::keyboard::handle_keypress;
 
 const IDT_ENTRY_AMOUT: usize = 256;
 
@@ -236,28 +237,10 @@ extern "C" fn exception_handler(reg: Regs) {
 #[no_mangle]
 extern "C" fn irq_handler(reg: Regs) {
     if reg.int_no == 1 {
-        // println!("Exception handler from IRQ a:{:?}", reg);
-        // println!("{}", inb(0x60));
-        let knbr = inb(0x60);
-        match crate::keyboard::en::KMAP.get(knbr as usize) {
-            Some(key) => {
-                println!("{} {}", key, knbr);
-            }
-            None => {
-                if knbr < 128 {
-                    println!("nbr: {}", knbr);
-                }
-            }
-        }
-        // let key = crate::keyboard::en::KMAP[inb(0x60)];
-    }
-    unsafe {
-        // core::arch::asm!("cli");
-        //core::arch::asm!("hlt");
+        handle_keypress();
     }
 
-    if reg.int_no >= 40
-    {
+    if reg.int_no >= 40 {
         outb(0xA0, 0x20);
     }
     outb(0x20, 0x20);
