@@ -297,23 +297,27 @@ pub fn interpret(mut shell_str: &[u8])
     }
 }
 
-pub unsafe fn read(c: u8) {
+pub fn read(c: u8) {
     static mut C_LEN: usize = 0;
     static mut BUFFER: [u8; 100] = [0; 100];
 
     match c {
         10 => {
             println!();
-            interpret(&mut BUFFER);
-            C_LEN = 0;
-            for e in BUFFER.iter_mut() { *e = 0; }
+            unsafe {
+                interpret(&mut BUFFER);
+                C_LEN = 0;
+                for e in BUFFER.iter_mut() { *e = 0; }
+            }
             print_prompt();
         }
         _ => {
             print!("{}", c as char);
-            if C_LEN < 99 {
-                BUFFER[C_LEN] = c;
-                C_LEN += 1;            
+            unsafe {
+                if C_LEN < 99 {
+                    BUFFER[C_LEN] = c;
+                    C_LEN += 1;            
+                }
             }
         }
     }
