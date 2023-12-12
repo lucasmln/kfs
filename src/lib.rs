@@ -6,13 +6,14 @@ mod interface;
 mod utils;
 mod gdt;
 mod io;
+mod shell;
 mod idt;
 mod keyboard;
 
 use interface::Colors;
 use crate::gdt::gdt_install;
 
-use crate::interface::{set_color, reset_screen, get_kernel_address};
+use crate::interface::{set_color, reset_screen};
 
 extern "C" {
     fn test_function();
@@ -29,11 +30,10 @@ pub extern "C" fn main() -> ! {
     set_color(Colors::White);
     println!();
 
-    loop {
-        unsafe {
-            core::arch::asm!("hlt");
-        }
-    }
+    shell::print_prompt();
+
+    loop {}
+
 }
 
 #[panic_handler]

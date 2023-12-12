@@ -98,7 +98,6 @@ pub fn gdt_install()
     }
 }
 
-#[allow(dead_code)]
 pub fn print_gdt() {
     let mut dtr = GdtPtr::default();
 

@@ -86,6 +86,7 @@ pub struct Regs
     ss: u32
 }
 
+#[derive(Debug)]
 #[repr(C, packed)]
 pub struct IdtEntry {
     isr_low: u16,       // The lower 16 bits of the ISR's address
@@ -95,6 +96,7 @@ pub struct IdtEntry {
     isr_high: u16       // The higher 16 bits of the ISR's address
 }
 
+#[derive(Debug)]
 #[repr(C, packed)]
 pub struct IdtPtr {
     limit: u16,
@@ -259,4 +261,18 @@ extern "C" fn irq_handler(reg: Regs) {
         outb(0xA0, 0x20);
     }
     outb(0x20, 0x20);
+}
+
+pub fn print_idt() {
+    let mut dtr = IdtPtr::default();
+
+    unsafe {
+        core::arch::asm!("sgit [{0}]", in(reg) &mut dtr);
+        println!("{:?}", dtr);
+        let gdt_entry_amout = (dtr.limit + 1) / size_of::<IdtEntry>() as u16;
+        for i in 0..gdt_entry_amout {
+            let idt = &mut *((dtr.base + (i * size_of::<IdtEntry>() as u16) as u32) as *mut IdtEntry);
+            println!("{:x?}", idt);
+        }
+    }
 }
