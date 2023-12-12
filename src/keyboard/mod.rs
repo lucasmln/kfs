@@ -80,7 +80,7 @@ impl Default for KeyboardState<'_> {
                     map: &en::KMAP, map_shift: &en::KMAP_SHIFT
                 }
             ],
-            lang_id: 0,
+            lang_id: 1,
             pressed_key: Stack::default(),
             active_key: Stack::default()
         }
