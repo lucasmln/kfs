@@ -200,7 +200,7 @@ pub enum Kvalue {
     Rshift,
     Symbole11,
     Option,
-    Symbole12,
+    Space,
     ShiftLock,
     F1,
     F2,
