@@ -237,13 +237,8 @@ extern "C" fn irq_handler(reg: Regs) {
     if reg.int_no == 1 {
         handle_keypress();
     }
-    unsafe {
-        // core::arch::asm!("cli");
-        //core::arch::asm!("hlt");
-    }
 
-    if reg.int_no >= 40
-    {
+    if reg.int_no >= 40 {
         outb(0xA0, 0x20);
     }
     outb(0x20, 0x20);
