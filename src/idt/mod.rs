@@ -250,7 +250,7 @@ pub fn print_idt() {
     let mut dtr = IdtPtr::default();
 
     unsafe {
-        core::arch::asm!("sgit [{0}]", in(reg) &mut dtr);
+        core::arch::asm!("sidt [{0}]", in(reg) &mut dtr);
         println!("{:?}", dtr);
         let gdt_entry_amout = (dtr.limit + 1) / size_of::<IdtEntry>() as u16;
         for i in 0..gdt_entry_amout {
