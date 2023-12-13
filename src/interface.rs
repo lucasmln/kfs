@@ -162,12 +162,10 @@ impl fmt::Write for Interface {
     }
 }
 
-// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
-use lazy_static::lazy_static;
 use spin::Mutex;
-lazy_static! {
-    static ref INTERFACE: Mutex<Interface> = Mutex::new(Interface::default());
-}
+use once_cell::unsync::Lazy;
+
+static INTERFACE: Mutex<Lazy<Interface>> = Mutex::new(Lazy::new(|| Interface::default()));
 
 #[macro_export]
 macro_rules! println {
@@ -194,7 +192,7 @@ macro_rules! printdel {
 }
 
 pub fn _del() {
-    INTERFACE.lock().del()
+    INTERFACE.lock().del();
 }
 
 // I don't know how to make this function only visible to this file

@@ -110,7 +110,7 @@ pub struct IdtTable {
 impl Default for IdtTable {
     fn default() -> Self {
         #[allow(deref_nullptr)]
-        Self { idt: unsafe { &mut *(0x0 as *mut [IdtEntry; IDT_ENTRY_AMOUT]) } }
+        Self { idt: unsafe { &mut *(0x4 as *mut [IdtEntry; IDT_ENTRY_AMOUT]) } }
     }
 }
 
@@ -149,12 +149,10 @@ pub fn irq_remap()
     outb(0xA1, 0x0);
 }
 
-
-use lazy_static::lazy_static;
+use once_cell::unsync::Lazy;
 use spin::Mutex;
-lazy_static! {
-    static ref IDT: Mutex<IdtTable> = Mutex::new(IdtTable::default());
-}
+
+static IDT: Mutex<Lazy<IdtTable>> = Mutex::new(Lazy::new(|| IdtTable::default()));
 
 pub fn idt_init() {
     let mut idt_ptr: IdtPtr = IdtPtr::default();
