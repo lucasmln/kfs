@@ -86,14 +86,9 @@ impl Default for KeyboardState<'_> {
     }
 }
 
-use lazy_static::lazy_static;
-use spin::{Mutex, MutexGuard};
+static mut KEYBOARD_STATE: Option<KeyboardState<'static>> = None;
 
-lazy_static! {
-    static ref KEYBOARD_STATE: Mutex<KeyboardState<'static>> = Mutex::new(KeyboardState::default());
-}
-
-fn is_switch_kb(knbr: u8, kb_state: &MutexGuard<'_, KeyboardState<'_>>) -> bool {
+fn is_switch_kb(knbr: u8, kb_state: &KeyboardState<'_>) -> bool {
     if knbr == fr::Kvalue::Space as u8 && kb_state.loption && kb_state.active_key.data[1] == 0 {
         return true;
     }
@@ -125,7 +120,7 @@ fn is_printable(value: fr::Kvalue) -> bool {
 
 fn key_unpress(knbr: u8) {
     let unpressed_knbr = knbr - 128;
-    let mut state = KEYBOARD_STATE.lock();
+    let mut state = unsafe { KEYBOARD_STATE.as_mut().unwrap() };
 
     match state.lang[state.lang_id].map.get(unpressed_knbr as usize) {
         Some(_key) => {
@@ -155,7 +150,7 @@ fn key_unpress(knbr: u8) {
 }
 
 fn key_press(knbr: u8) {
-    let mut state = KEYBOARD_STATE.lock();
+    let mut state = unsafe { KEYBOARD_STATE.as_mut().unwrap() };
     let map;
     
     if state.lshift == true || state.rshift == true || state.caps_lock == true {
@@ -208,6 +203,12 @@ fn key_press(knbr: u8) {
             }
             state.active_key.push(knbr);
         }
+    }
+}
+
+pub fn init() {
+    unsafe {
+        KEYBOARD_STATE = Some(KeyboardState::default());
     }
 }
 

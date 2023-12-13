@@ -19,9 +19,12 @@ use crate::interface::{set_color, reset_screen};
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
-    interface::init();
-    gdt::init();
-    idt::init();
+    unsafe {
+        interface::init();
+        keyboard::init();
+        gdt::init();
+        idt::init();
+    }
 
     reset_screen();
     utils::print_header();

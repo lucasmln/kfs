@@ -149,78 +149,72 @@ pub fn irq_remap()
     outb(0xA1, 0x0);
 }
 
+static mut IDT: Option<IdtTable> = None;
 
-use lazy_static::lazy_static;
-use spin::Mutex;
-lazy_static! {
-    static ref IDT: Mutex<IdtTable> = Mutex::new(IdtTable::default());
-}
-
-pub fn init() {
+pub unsafe fn init() {
+    IDT = Some(IdtTable::default());
     let mut idt_ptr: IdtPtr = IdtPtr::default();
 
+    let mut idt = IDT.as_mut().unwrap();
     for i in 0..IDT_ENTRY_AMOUT {
-        set_idt_descriptor(&mut IDT.lock().idt[i], isr_stub_0 as _, 0x8e);
+        set_idt_descriptor(&mut idt.idt[i], isr_stub_0 as _, 0x8e);
     }
     
-    unsafe {
-        set_idt_descriptor(&mut IDT.lock().idt[0x00], isr_stub_0 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x01], isr_stub_1 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x02], isr_stub_2 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x03], isr_stub_3 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x04], isr_stub_4 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x05], isr_stub_5 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x06], isr_stub_6 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x07], isr_stub_7 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x08], isr_stub_8 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x09], isr_stub_9 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0a], isr_stub_10 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0b], isr_stub_11 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0c], isr_stub_12 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0d], isr_stub_13 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0e], isr_stub_14 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x0f], isr_stub_15 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x10], isr_stub_16 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x11], isr_stub_17 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x12], isr_stub_18 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x13], isr_stub_19 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x14], isr_stub_20 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x15], isr_stub_21 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x16], isr_stub_22 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x17], isr_stub_23 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x18], isr_stub_24 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x19], isr_stub_25 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1a], isr_stub_26 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1b], isr_stub_27 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1c], isr_stub_28 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1d], isr_stub_29 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1e], isr_stub_30 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x1f], isr_stub_31 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x00], isr_stub_0 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x01], isr_stub_1 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x02], isr_stub_2 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x03], isr_stub_3 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x04], isr_stub_4 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x05], isr_stub_5 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x06], isr_stub_6 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x07], isr_stub_7 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x08], isr_stub_8 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x09], isr_stub_9 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0a], isr_stub_10 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0b], isr_stub_11 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0c], isr_stub_12 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0d], isr_stub_13 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0e], isr_stub_14 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x0f], isr_stub_15 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x10], isr_stub_16 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x11], isr_stub_17 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x12], isr_stub_18 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x13], isr_stub_19 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x14], isr_stub_20 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x15], isr_stub_21 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x16], isr_stub_22 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x17], isr_stub_23 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x18], isr_stub_24 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x19], isr_stub_25 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1a], isr_stub_26 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1b], isr_stub_27 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1c], isr_stub_28 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1d], isr_stub_29 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1e], isr_stub_30 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x1f], isr_stub_31 as _, 0x8e);
 
-        irq_remap();
-        set_idt_descriptor(&mut IDT.lock().idt[0x20], irq_0 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x21], irq_1 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x22], irq_2 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x23], irq_3 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x24], irq_4 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x25], irq_5 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x26], irq_6 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x27], irq_7 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x28], irq_8 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x29], irq_9 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2a], irq_10 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2b], irq_11 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2c], irq_12 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2d], irq_13 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2e], irq_14 as _, 0x8e);
-        set_idt_descriptor(&mut IDT.lock().idt[0x2f], irq_15 as _, 0x8e);
+    irq_remap();
+    set_idt_descriptor(&mut idt.idt[0x20], irq_0 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x21], irq_1 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x22], irq_2 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x23], irq_3 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x24], irq_4 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x25], irq_5 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x26], irq_6 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x27], irq_7 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x28], irq_8 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x29], irq_9 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2a], irq_10 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2b], irq_11 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2c], irq_12 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2d], irq_13 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2e], irq_14 as _, 0x8e);
+    set_idt_descriptor(&mut idt.idt[0x2f], irq_15 as _, 0x8e);
 
-        
-        idt_ptr.limit = ((size_of::<IdtEntry>() * IDT_ENTRY_AMOUT) - (1 as usize)) as u16;
-        idt_ptr.base = &IDT.lock().idt[0] as *const _ as u32;
-        load_idt(&mut idt_ptr);
-    }
-
+    
+    idt_ptr.limit = ((size_of::<IdtEntry>() * IDT_ENTRY_AMOUT) - (1 as usize)) as u16;
+    idt_ptr.base = &idt.idt[0] as *const _ as u32;
+    load_idt(&mut idt_ptr);
 }
 
 #[no_mangle]
