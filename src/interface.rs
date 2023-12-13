@@ -142,12 +142,13 @@ impl Interface {
             if self.y > 0 {
                 self.y -= 1;
             }
-            self.x = WIDTH;
+            self.x = WIDTH - 1;
+            self.vga_address.cells[self.y][self.x].character = b' ';
         }
         else {
             self.x -= 1;
+            self.vga_address.cells[self.y][self.x].character = b' ';
         }
-        self.vga_address.cells[self.y][self.x].character = b' ';
         self.set_cursor_position();
     }
 
