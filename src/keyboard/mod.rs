@@ -154,16 +154,13 @@ fn key_unpress(knbr: u8) {
 }
 
 fn key_press(knbr: u8) {
-    let map;
-
     let mut state = KEYBOARD_STATE.lock();
-
+    
+    let mut map = &LANG[state.lang_id].map;
     if state.lshift == true || state.rshift == true || state.caps_lock == true {
-        map = LANG[state.lang_id].map_shift;
-    } else {
-        map = LANG[state.lang_id].map;
+        map = &LANG[state.lang_id].map_shift;
     }
-    match map.get(knbr as usize) {
+    match (*map).get(knbr as usize) {
         Some(key) => {
             let kvalue = fr::get_kvalue(knbr);
             match kvalue {
@@ -181,7 +178,7 @@ fn key_press(knbr: u8) {
                     state.loption = true;
                 }
                 fr::Kvalue::ShiftLock => {
-                    state.caps_lock = true;
+                    state.caps_lock = !state.caps_lock;
                 }
                 fr::Kvalue::Del => {
                     shell::read(&[127]);
