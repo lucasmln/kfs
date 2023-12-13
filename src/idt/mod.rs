@@ -156,7 +156,7 @@ lazy_static! {
     static ref IDT: Mutex<IdtTable> = Mutex::new(IdtTable::default());
 }
 
-pub fn idt_init() {
+pub fn init() {
     let mut idt_ptr: IdtPtr = IdtPtr::default();
 
     for i in 0..IDT_ENTRY_AMOUT {

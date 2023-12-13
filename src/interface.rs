@@ -161,12 +161,7 @@ impl fmt::Write for Interface {
     }
 }
 
-// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
-use lazy_static::lazy_static;
-use spin::Mutex;
-lazy_static! {
-    static ref INTERFACE: Mutex<Interface> = Mutex::new(Interface::default());
-}
+static mut INTERFACE: Option<Interface> = None;
 
 #[macro_export]
 macro_rules! println {
@@ -193,16 +188,22 @@ macro_rules! printdel {
 }
 
 pub fn _del() {
-    INTERFACE.lock().del()
+    unsafe {
+        INTERFACE.as_mut().unwrap().del();
+    }
 }
 
 // I don't know how to make this function only visible to this file
 pub(crate) fn _print(args: fmt::Arguments) {
-    INTERFACE.lock().write_fmt(args).unwrap();
+    unsafe {
+        INTERFACE.as_mut().unwrap().write_fmt(args).unwrap();
+    }
 }
 
 pub fn set_color(color: Colors) {
-    INTERFACE.lock().color = color;
+    unsafe {
+        INTERFACE.as_mut().unwrap().color = color;
+    }
 }
 
 pub fn color_str_to_color(s: &[u8]) -> Option<Colors> {
@@ -229,9 +230,19 @@ pub fn color_str_to_color(s: &[u8]) -> Option<Colors> {
 }
 
 pub fn get_color() -> Colors {
-    return INTERFACE.lock().color;
+    unsafe {
+        return INTERFACE.as_mut().unwrap().color;
+    }
 }
 
 pub fn reset_screen() {
-    INTERFACE.lock().reset_screen()
+    unsafe {
+        INTERFACE.as_mut().unwrap().reset_screen()
+    }
+}
+
+pub fn init() {
+    unsafe {
+        INTERFACE = Some(Interface::default());
+    }
 }

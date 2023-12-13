@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)]
+#![feature(const_mut_refs)]
+#![feature(const_trait_impl)]
 
 mod interface;
 mod utils;
@@ -11,15 +13,15 @@ mod idt;
 mod keyboard;
 
 use interface::Colors;
-use crate::gdt::gdt_install;
 
 use crate::interface::{set_color, reset_screen};
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
-    gdt_install();
-    idt::idt_init();
+    interface::init();
+    gdt::init();
+    idt::init();
 
     reset_screen();
     utils::print_header();

@@ -15,8 +15,3 @@ cc = "1.0"
 
 [dependencies]
 atoi = { version = "2.0.0", default-features = false }
-spin = "0.9.8"
-
-[dependencies.lazy_static]
-version = "1.4"
-features = ["spin_no_std"]

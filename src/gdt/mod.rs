@@ -58,39 +58,38 @@ pub fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granula
     return;
 }
 
-use lazy_static::lazy_static;
-use spin::Mutex;
-
 use crate::{println, print};
 
-lazy_static! {
-    static ref GDT: Mutex<GdtTable> = Mutex::new(GdtTable::default());
-}
+static mut GDT: Option<GdtTable> = None;
 
-pub fn gdt_install()
+pub fn init()
 {
+    unsafe {
+        GDT = Some(GdtTable::default());
+    }
+    let gdt = unsafe { GDT.as_mut().unwrap() };
     let mut gp: GdtPtr = GdtPtr::default();
 
     /* Setup the GDT pointer and limit */
     gp.limit = ((size_of::<GdtEntry>() * GDT_ENTRY_AMOUNT) - (1 as usize)) as u16;
-    gp.base = &GDT.lock().gdt[0] as *const _ as u32;
+    gp.base = &gdt.gdt[0] as *const _ as u32;
 
     /* https://wiki.osdev.org/Global_Descriptor_Table#Segment_Descriptor */
     /* Our NULL descriptor */
-    init_gdt(&mut GDT.lock().gdt[0], 0, 0, 0, 0);
+    init_gdt(&mut gdt.gdt[0], 0, 0, 0, 0);
     /* kernel code */
-    init_gdt(&mut GDT.lock().gdt[1], 0, 0xffffffff, 0x9B, 0xcf);
+    init_gdt(&mut gdt.gdt[1], 0, 0xffffffff, 0x9B, 0xcf);
     /* kernel data */
-    init_gdt(&mut GDT.lock().gdt[2], 0, 0xffffffff, 0x93, 0xcf);
+    init_gdt(&mut gdt.gdt[2], 0, 0xffffffff, 0x93, 0xcf);
     /* kernel stack */
-    init_gdt(&mut GDT.lock().gdt[3], 0, 0xffffffff, 0x97, 0xcf);
+    init_gdt(&mut gdt.gdt[3], 0, 0xffffffff, 0x97, 0xcf);
 
     /* user code */
-    init_gdt(&mut GDT.lock().gdt[4], 0, 0xffffffff, 0xfb, 0xcf);
+    init_gdt(&mut gdt.gdt[4], 0, 0xffffffff, 0xfb, 0xcf);
     /* user data */
-    init_gdt(&mut GDT.lock().gdt[5], 0, 0xffffffff, 0xf3, 0xcf);
+    init_gdt(&mut gdt.gdt[5], 0, 0xffffffff, 0xf3, 0xcf);
     /* user stack */
-    init_gdt(&mut GDT.lock().gdt[6], 0, 0xffffffff, 0xf7, 0xcf);
+    init_gdt(&mut gdt.gdt[6], 0, 0xffffffff, 0xf7, 0xcf);
 
     /* Flush out the old GDT and install the new changes */
     unsafe {
