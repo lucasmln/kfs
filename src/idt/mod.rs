@@ -2,13 +2,12 @@ use core::mem::size_of;
 use core::ffi::c_void;
 
 use crate::{print, println};
-use crate::io::{outb, inb};
+use crate::io::outb;
 use crate::keyboard::handle_keypress;
 
 const IDT_ENTRY_AMOUT: usize = 256;
 
 extern "C" {
-    fn test_function();
     fn isr_stub_0();
     fn isr_stub_1();
     fn isr_stub_2();
@@ -110,6 +109,7 @@ pub struct IdtTable {
 
 impl Default for IdtTable {
     fn default() -> Self {
+        #[allow(deref_nullptr)]
         Self { idt: unsafe { &mut *(0x0 as *mut [IdtEntry; IDT_ENTRY_AMOUT]) } }
     }
 }

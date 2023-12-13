@@ -8,6 +8,7 @@ RUSTC = rustc
 KERNEL = kernel
 KERNEL_LIB = libkernel.a
 KERNEL_LIB_PATH = target/x86/debug/$(KERNEL_LIB)
+KERNEL_LIB_RELEASE_PATH = target/x86/release/$(KERNEL_LIB)
 CFG = build/grub.cfg
 LINKER_FILE = build/linker.ld
 ISO_PATH := iso
@@ -23,7 +24,8 @@ OBJ = $(SRCS:.rs=.o)
 
 .PHONY: all
 all: bootloader kernel linker iso
-	@echo Make has completed.
+
+release: bootloader kernel_release linker_release iso
 
 bootloader:
 	nasm -f elf32 boot.asm -o boot.o
@@ -31,8 +33,14 @@ bootloader:
 kernel:
 	cargo build
 
+kernel_release:
+	cargo build --release
+
 linker: bootloader kernel
 	ld -m elf_i386 -T $(LINKER_FILE) -o $(KERNEL) boot.o $(KERNEL_LIB_PATH)
+
+linker_release: bootloader kernel_release
+	ld -m elf_i386 -T $(LINKER_FILE) -o $(KERNEL) boot.o $(KERNEL_LIB_RELEASE_PATH)
 
 iso: kernel
 	$(MKDIR) $(GRUB_PATH)
