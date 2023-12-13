@@ -8,7 +8,7 @@ extern "C" {
 
 #[derive(Debug)]
 #[repr(C, packed)]
-pub struct GdtEntry {
+struct GdtEntry {
     pub limit_low: u16,
     pub base_low: u16,
     pub base_middle: u8,
@@ -17,7 +17,7 @@ pub struct GdtEntry {
     pub base_high: u8
 }
 
-pub struct GdtTable {
+struct GdtTable {
     pub gdt: &'static mut [GdtEntry; GDT_ENTRY_AMOUNT]
 }
 impl Default for GdtTable {
@@ -34,7 +34,7 @@ impl Default for GdtEntry {
 
 #[derive(Debug)]
 #[repr(C, packed)]
-pub struct GdtPtr {
+struct GdtPtr {
     pub limit: u16,
     pub base: u32
 }
@@ -45,7 +45,7 @@ impl Default for GdtPtr {
     }
 }
 
-pub fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granularity: u8) {
+fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granularity: u8) {
     entry.base_low = (base & 0xffff) as u16;
     entry.base_middle = ((base >> 16) & 0xff) as u8;
     entry.base_high = ((base >> 24) & 0xff) as u8;
@@ -64,7 +64,7 @@ use crate::{println, print};
 
 static GDT: Mutex<Lazy<GdtTable>> = Mutex::new(Lazy::new(|| GdtTable::default()));
 
-pub fn gdt_install()
+pub fn init()
 {
     let mut gp: GdtPtr = GdtPtr::default();
 
@@ -100,11 +100,11 @@ pub fn print_gdt() {
 
     unsafe {
         core::arch::asm!("sgdt [{0}]", in(reg) &mut dtr);
-        println!("{:?}", dtr);
         let gdt_entry_amout = (dtr.limit + 1) / 8;
         for i in 0..gdt_entry_amout {
             let gdt = &mut *((dtr.base + (i * size_of::<GdtEntry>() as u16) as u32) as *mut GdtEntry);
             println!("{:x?}", gdt);
         }
+        println!("{:?}", dtr);
     }
 }

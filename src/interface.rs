@@ -1,4 +1,4 @@
-use crate::io;
+use crate::asm;
 
 const VGA_ADDRESS: u32 = 0xB8000;
 const WIDTH: usize = 80;
@@ -53,15 +53,15 @@ impl Interface {
 
     fn enable_cursor(&mut self) {
         // We call `out 0x3d4, 0xa` so that on the `out 0x3d5, 0xe` the cursor will change it's look
-        io::outb(0x3d4, 0xa);
+        asm::outb(0x3d4, 0xa);
         // bits 0-4 control the cursor shape (0x0-0xf range), we chose 0xe because it looks cool
-        io::outb(0x3d5, 0xe);
+        asm::outb(0x3d5, 0xe);
     }
     fn disable_cursor(&mut self) {
         // We call `out 0x3d4, 0xa` so that on the `out 0x3d5, 0x10` the cursor will disapear
-        io::outb(0x3d4, 0xa);
+        asm::outb(0x3d4, 0xa);
         // bit 5 disables the cursor (0xf or 1 << 4)
-        io::outb(0x3d5, 0xf);
+        asm::outb(0x3d5, 0xf);
     }
 
     fn set_cursor_position(&mut self) {
@@ -74,13 +74,13 @@ impl Interface {
         let pos = self.y * WIDTH + x;
 
         // say we are going to put the lower bits (0-7)
-        io::outb(0x3D4, 0x0F);
+        asm::outb(0x3D4, 0x0F);
         // put the lower 8 bits
-        io::outb(0x3D5, (pos & 0xff).try_into().unwrap());
+        asm::outb(0x3D5, (pos & 0xff).try_into().unwrap());
         // say we are going to put the upper bits (8-15)
-        io::outb(0x3D4, 0x0E);
+        asm::outb(0x3D4, 0x0E);
         // put the upper 8 bits
-        io::outb(0x3D5, ((pos >> 8) & 0xff).try_into().unwrap());
+        asm::outb(0x3D5, ((pos >> 8) & 0xff).try_into().unwrap());
     }
 
     fn clear_line(&mut self, n: usize) {
