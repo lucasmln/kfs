@@ -327,17 +327,17 @@ pub fn read(key: &[u8]) {
             127 => {
                 unsafe {
                     if C_LEN > 0 {
-                        BUFFER[C_LEN] = b'\x00';
                         C_LEN -= 1;
+                        BUFFER[C_LEN] = b'\x00';
                         printdel!();
                     }
                 }
 
             }
             _ => {
-                print!("{}", *c as char);
                 unsafe {
                     if C_LEN < 99 {
+                        print!("{}", *c as char);
                         BUFFER[C_LEN] = *c;
                         C_LEN += 1;
                     }
