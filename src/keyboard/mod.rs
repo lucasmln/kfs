@@ -1,7 +1,8 @@
 pub mod en;
 pub mod fr;
 
-use crate::io::inb;
+use crate::asm;
+use crate::print;
 use crate::shell;
 
 
@@ -40,12 +41,12 @@ impl Stack {
     }
 }
 
-pub struct Kmap<'a> {
-    map: &'a[&'a str; 69],
-    map_shift: &'a[&'a str; 69]
+pub struct Kmap {
+    map: [&'static str; 69],
+    map_shift: [&'static str; 69]
 }
 
-pub struct KeyboardState<'a> {
+pub struct KeyboardState {
     lshift: bool,
     rshift: bool,
     lctrl: bool,
@@ -54,13 +55,12 @@ pub struct KeyboardState<'a> {
     rcmd: bool,
     _fn_btn: bool,
     caps_lock: bool,
-    lang: [Kmap<'a>; 2],
     lang_id: usize,
     pressed_key: Stack,
     active_key: Stack
 }
 
-impl Default for KeyboardState<'_> {
+impl Default for KeyboardState {
     fn default() -> Self {
         Self {
             lshift: false,
@@ -71,14 +71,6 @@ impl Default for KeyboardState<'_> {
             rcmd: false,
             _fn_btn: false,
             caps_lock: false,
-            lang: [
-                Kmap {
-                    map: &fr::KMAP, map_shift: &fr::KMAP_SHIFT
-                },
-                Kmap {
-                    map: &en::KMAP, map_shift: &en::KMAP_SHIFT
-                }
-            ],
             lang_id: 1,
             pressed_key: Stack::default(),
             active_key: Stack::default()
@@ -89,9 +81,18 @@ impl Default for KeyboardState<'_> {
 use once_cell::unsync::Lazy;
 use spin::{Mutex, MutexGuard};
 
-static KEYBOARD_STATE: Mutex<Lazy<KeyboardState<'static>>> = Mutex::new(Lazy::new(|| KeyboardState::default()));
+static KEYBOARD_STATE: Mutex<Lazy<KeyboardState>> = Mutex::new(Lazy::new(|| KeyboardState::default()));
 
-fn is_switch_kb(knbr: u8, kb_state: &MutexGuard<'_, once_cell::unsync::Lazy<KeyboardState<'static>>>) -> bool {
+const LANG: [Kmap; 2] = [
+    Kmap {
+        map: fr::KMAP, map_shift: fr::KMAP_SHIFT
+    },
+    Kmap {
+        map: en::KMAP, map_shift: en::KMAP_SHIFT
+    }
+];
+
+fn is_switch_kb(knbr: u8, kb_state: &MutexGuard<'_, once_cell::unsync::Lazy<KeyboardState>>) -> bool {
     if knbr == fr::Kvalue::Space as u8 && kb_state.loption && kb_state.active_key.data[1] == 0 {
         return true;
     }
@@ -125,7 +126,7 @@ fn key_unpress(knbr: u8) {
     let unpressed_knbr = knbr - 128;
     let mut state = KEYBOARD_STATE.lock();
 
-    match state.lang[state.lang_id].map.get(unpressed_knbr as usize) {
+    match LANG[state.lang_id].map.get(unpressed_knbr as usize) {
         Some(_key) => {
             if unpressed_knbr == fr::Kvalue::Ctrl as u8 {
                 state.lctrl = false;
@@ -153,13 +154,14 @@ fn key_unpress(knbr: u8) {
 }
 
 fn key_press(knbr: u8) {
-    let mut state = KEYBOARD_STATE.lock();
     let map;
-    
+
+    let mut state = KEYBOARD_STATE.lock();
+
     if state.lshift == true || state.rshift == true || state.caps_lock == true {
-        map = state.lang[state.lang_id].map_shift;
+        map = LANG[state.lang_id].map_shift;
     } else {
-        map = state.lang[state.lang_id].map;
+        map = LANG[state.lang_id].map;
     }
     match map.get(knbr as usize) {
         Some(key) => {
@@ -210,7 +212,7 @@ fn key_press(knbr: u8) {
 }
 
 pub fn handle_keypress() {
-    let knbr = inb(0x60);
+    let knbr = asm::inb(0x60);
     if knbr > 127 {
         key_unpress(knbr);
     } else {

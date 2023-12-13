@@ -1,4 +1,4 @@
-pub static KMAP: [&str; 69] = [
+pub const KMAP: [&str; 69] = [
     "NULL",
     "escape",
     "1",
@@ -70,7 +70,7 @@ pub static KMAP: [&str; 69] = [
     "F10",
 ];
 
-pub static KMAP_SHIFT: [&str; 69] = [
+pub const KMAP_SHIFT: [&str; 69] = [
     "NULL",
     "escape",
     "!",

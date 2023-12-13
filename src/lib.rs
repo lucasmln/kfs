@@ -5,33 +5,31 @@
 mod interface;
 mod utils;
 mod gdt;
-mod io;
 mod shell;
 mod idt;
 mod keyboard;
+mod asm;
 
 use interface::Colors;
-use crate::gdt::gdt_install;
-
-use crate::interface::{set_color, reset_screen};
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
 
-    gdt_install();
-    idt::idt_init();
+    gdt::init();
+    idt::init();
 
-    reset_screen();
+    cli!();
+
+    interface::reset_screen();
     utils::print_header();
-    set_color(Colors::White);
+    interface::set_color(Colors::White);
     println!();
 
     shell::print_prompt();
 
+    sti!();
     loop {
-        unsafe {
-            core::arch::asm!("hlt");
-        }
+        hlt!();
     }
 
 }
@@ -42,13 +40,13 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     let message =  _info.message().unwrap_or(&arg);
     let location = _info.location().unwrap();
 
-    set_color(Colors::BrightRed);
+    interface::set_color(Colors::BrightRed);
     print!("[PANIC ");
-    set_color(Colors::BrightWhite);
+    interface::set_color(Colors::BrightWhite);
     print!("{}", location);
-    set_color(Colors::BrightRed);
+    interface::set_color(Colors::BrightRed);
     print!("]: ");
-    set_color(Colors::BrightWhite);
+    interface::set_color(Colors::BrightWhite);
     println!("{}", message);
     loop {}
 }
