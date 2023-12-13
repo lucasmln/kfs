@@ -248,23 +248,28 @@ fn print_memory(mut command: &[u8], address_str: Option<&[u8]>) {
                 }
             }
             b's' => {
+                let mut counter: usize = 0;
                 unsafe {
                     print!("\"");
                     for _ in 0..200 {
-                        let c = *get_kernel_address::<i8>(address);
+                        let c = *get_kernel_address::<u8>(address);
                         if c == 0 {
+                            if counter == 0 {
+                                address += 1;
+                            }
                             break;
                         }
+                        address += 1;
                         if (32..126).contains(&c) {
                             print!("{}", c as u8 as char);
                         }
                         else {
                             print!("\\{:o}", c);
                         }
-                        address += 1;
+                        counter += 1;
                     }
                     print!("\"");
-                    if *get_kernel_address::<i8>(address) != 0 {
+                    if counter == 200 && *get_kernel_address::<u8>(address) != 0 {
                         print!("...");
                     }
                 }
@@ -297,9 +302,10 @@ pub fn interpret(mut shell_str: &[u8])
             else if x.starts_with("set_color".as_bytes()) { set_color(shell_str_splitted.next()); }
             else if x.starts_with("panic".as_bytes()) { panic!("You called panic !"); }
             else if x.starts_with("x".as_bytes()) { print_memory(x, shell_str_splitted.next()); }
+            else if x == [] {}
             else { unknown_command(Some(x)); }
         }
-        None => { unknown_command(command); }
+        None => { }
     }
 }
 

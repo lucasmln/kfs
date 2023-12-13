@@ -1,8 +1,7 @@
 pub mod en;
 pub mod fr;
 
-use crate::{print, println};
-use crate::io::{outb, inb};
+use crate::io::inb;
 use crate::shell;
 
 
@@ -53,7 +52,7 @@ pub struct KeyboardState<'a> {
     loption: bool,
     lcmd: bool,
     rcmd: bool,
-    fn_btn: bool,
+    _fn_btn: bool,
     caps_lock: bool,
     lang: [Kmap<'a>; 2],
     lang_id: usize,
@@ -70,7 +69,7 @@ impl Default for KeyboardState<'_> {
             loption: false,
             lcmd: false,
             rcmd: false,
-            fn_btn: false,
+            _fn_btn: false,
             caps_lock: false,
             lang: [
                 Kmap {
