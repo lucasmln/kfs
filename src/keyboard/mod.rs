@@ -127,17 +127,13 @@ fn key_unpress(knbr: u8) {
 
     match state.lang[state.lang_id].map.get(unpressed_knbr as usize) {
         Some(_key) => {
-            if unpressed_knbr == fr::Kvalue::Ctrl as u8 {
-                state.lctrl = false;
-            } else if unpressed_knbr == fr::Kvalue::LShift as u8 {
-                state.lshift = false;
-            } else if unpressed_knbr == fr::Kvalue::Rshift as u8  {
-                state.rshift = false;
-            } else if unpressed_knbr == fr::Kvalue::Option as u8  {
-                // loption and roption have the same value in macos keyboard
-                state.loption = false;
-            } else {
-                state.pressed_key.push(knbr);
+            let kvalue = fr::get_kvalue(unpressed_knbr);
+            match kvalue {
+                fr::Kvalue::Ctrl => { state.lctrl = false; }
+                fr::Kvalue::LShift => { state.lshift = false; }
+                fr::Kvalue::Rshift => { state.rshift = false; }
+                fr::Kvalue::Option => { state.loption = false; }
+                _ => { state.pressed_key.push(knbr); }
             }
             state.active_key.pop();
         }
@@ -179,7 +175,7 @@ fn key_press(knbr: u8) {
                     state.loption = true;
                 }
                 fr::Kvalue::ShiftLock => {
-                    state.caps_lock = true;
+                    state.caps_lock = !state.caps_lock;
                 }
                 fr::Kvalue::Del => {
                     shell::read(&[127]);
