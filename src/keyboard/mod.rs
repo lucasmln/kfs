@@ -86,14 +86,12 @@ impl Default for KeyboardState<'_> {
     }
 }
 
-use lazy_static::lazy_static;
+use once_cell::unsync::Lazy;
 use spin::{Mutex, MutexGuard};
 
-lazy_static! {
-    static ref KEYBOARD_STATE: Mutex<KeyboardState<'static>> = Mutex::new(KeyboardState::default());
-}
+static KEYBOARD_STATE: Mutex<Lazy<KeyboardState<'static>>> = Mutex::new(Lazy::new(|| KeyboardState::default()));
 
-fn is_switch_kb(knbr: u8, kb_state: &MutexGuard<'_, KeyboardState<'_>>) -> bool {
+fn is_switch_kb(knbr: u8, kb_state: &MutexGuard<'_, once_cell::unsync::Lazy<KeyboardState<'static>>>) -> bool {
     if knbr == fr::Kvalue::Space as u8 && kb_state.loption && kb_state.active_key.data[1] == 0 {
         return true;
     }

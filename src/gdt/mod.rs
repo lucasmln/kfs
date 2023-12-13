@@ -58,14 +58,11 @@ pub fn init_gdt(entry: &mut GdtEntry, base: u32, limit: u32, access: u8, granula
     return;
 }
 
-use lazy_static::lazy_static;
+use once_cell::unsync::Lazy;
 use spin::Mutex;
-
 use crate::{println, print};
 
-lazy_static! {
-    static ref GDT: Mutex<GdtTable> = Mutex::new(GdtTable::default());
-}
+static GDT: Mutex<Lazy<GdtTable>> = Mutex::new(Lazy::new(|| GdtTable::default()));
 
 pub fn gdt_install()
 {
