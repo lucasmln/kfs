@@ -2,7 +2,6 @@ pub mod en;
 pub mod fr;
 
 use crate::asm;
-use crate::print;
 use crate::shell;
 
 
