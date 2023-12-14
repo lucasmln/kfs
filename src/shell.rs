@@ -302,6 +302,7 @@ pub fn interpret(mut shell_str: &[u8])
             else if x.starts_with("set_color".as_bytes()) { set_color(shell_str_splitted.next()); }
             else if x.starts_with("panic".as_bytes()) { panic!("You called panic !"); }
             else if x.starts_with("x".as_bytes()) { print_memory(x, shell_str_splitted.next()); }
+            else if x.starts_with("reboot".as_bytes()) { idt::reboot(); }
             else if x == [] {}
             else { unknown_command(Some(x)); }
         }
