@@ -155,6 +155,14 @@ use spin::Mutex;
 
 static _IDT: Mutex<Lazy<IdtTable>> = Mutex::new(Lazy::new(|| IdtTable::default()));
 
+pub fn reboot() {
+    let mut idt_ptr: IdtPtr = IdtPtr::default();
+
+    unsafe {
+        load_idt(&mut idt_ptr);
+    }
+}
+
 pub fn init() {
     let mut idt_ptr: IdtPtr = IdtPtr::default();
     let mut fake_idt_entries = [IdtEntry::default(); IDT_ENTRY_AMOUT];
