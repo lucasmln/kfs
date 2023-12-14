@@ -12,10 +12,6 @@ extern main                      ;defined in the C file
 
 start:
         cli                      ;block interrupts
-        mov esp, stack_space     ;set stack pointer
+        mov esp, 0xeffffc     ;set stack pointer
         call main
         hlt                      ;halt the CPU
-
-section .bss
-resb 8192                        ;8KB for stack
-stack_space:
