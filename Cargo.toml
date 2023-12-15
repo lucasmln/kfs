@@ -4,14 +4,8 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
-[lib]
-name = "kernel"           # The name of the target.
-path = "src/lib.rs"    # The source file of the target.
-edition = "2021"       # The edition of the target.
-crate-type = ["staticlib"]   # The crate types to generate.
-
 [build-dependencies]
-cc = "1.0"
+cc = "1.0.83"
 
 [dependencies]
 atoi = { version = "2.0.0", default-features = false }

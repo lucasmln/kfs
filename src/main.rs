@@ -12,7 +12,28 @@ mod asm;
 
 use interface::Colors;
 
+#[allow(dead_code)]
+pub struct MultibootHeader {
+    magic: u32,
+    arch: u32,
+    magic2: u32
+}
+
 #[no_mangle]
+#[link_section = ".multiboot"]
+pub static MULTIBOOT: MultibootHeader = MultibootHeader {
+    magic: 0x1BADB002,
+    arch: 0x0,
+    magic2: -(0x1BADB002 as i32) as u32
+};
+
+#[no_mangle]
+pub extern "C" fn _start() {
+    cli!();
+    unsafe { core::arch::asm!("mov esp, 0xeffffc"); }
+    main();
+}
+
 pub extern "C" fn main() -> ! {
 
     gdt::init();
