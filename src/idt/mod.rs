@@ -7,6 +7,26 @@ use crate::keyboard::handle_keypress;
 
 const IDT_ENTRY_AMOUT: usize = 256;
 
+enum Interrupt {
+    SystemTimer,
+    Keyboard,
+    CascadedToSlavePic,
+    SerialPort2,
+    SerialPort1,
+    ParallelPort3,
+    FloppyDisk,
+    ParallelPort1,
+    RealRimeClock,
+    ACPI,
+    OpenInterrupt1,
+    OpenInterrupt2,
+    Mouse,
+    IRQ13,
+    PrimaryATA,
+    SecondaryATA,
+    Null
+}
+
 extern "C" {
     fn isr_stub_0();
     fn isr_stub_1();
@@ -246,12 +266,34 @@ extern "C" fn exception_handler(reg: Regs) {
     }
 }
 
+fn get_int_no_has_enum(int_no: u32) -> Interrupt {
+    match int_no {
+        0 => { Interrupt::SystemTimer }
+        1 => { Interrupt::Keyboard }
+        2 => { Interrupt::CascadedToSlavePic }
+        3 => { Interrupt::SerialPort2 }
+        4 => { Interrupt::SerialPort1 }
+        5 => { Interrupt::ParallelPort3 }
+        6 => { Interrupt::FloppyDisk }
+        7 => { Interrupt::ParallelPort1 }
+        8 => { Interrupt::RealRimeClock }
+        9 => { Interrupt::ACPI }
+        10 => { Interrupt::OpenInterrupt1 }
+        11 => { Interrupt::OpenInterrupt2 }
+        12 => { Interrupt::Mouse }
+        13 => { Interrupt::IRQ13 }
+        14 => { Interrupt::PrimaryATA }
+        15 => { Interrupt::SecondaryATA }
+        _ => { Interrupt::Null }
+    }
+}
+
 #[no_mangle]
 extern "C" fn irq_handler(reg: Regs) {
     cli!();
-    match reg.int_no {
-        1 => { handle_keypress(); }
-        12 => { asm::inb(0x60); }
+    match get_int_no_has_enum(reg.int_no) {
+        Interrupt::Keyboard => { handle_keypress(); }
+        Interrupt::Mouse => { asm::inb(0x60); }
         _ => { }
     }
 
