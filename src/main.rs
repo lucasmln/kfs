@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)]
+#![feature(naked_functions)]
 
 mod interface;
 mod utils;
@@ -27,13 +28,21 @@ pub static MULTIBOOT: MultibootHeader = MultibootHeader {
     magic2: -(0x1BADB002 as i32) as u32
 };
 
+#[naked]
 #[no_mangle]
-pub extern "C" fn _start() {
-    cli!();
-    unsafe { core::arch::asm!("mov esp, 0xeffffc"); }
-    main();
+pub extern "C" fn _start() -> ! {
+    unsafe {
+        core::arch::asm!("
+            cli
+            mov esp, 0xf00000
+            call main
+            cli
+            hlt
+        ", options(noreturn));
+    }
 }
 
+#[no_mangle]
 pub extern "C" fn main() -> ! {
 
     gdt::init();
