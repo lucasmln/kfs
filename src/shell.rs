@@ -17,6 +17,7 @@ fn print_help(command: Option<&[u8]>) {
     - set_color <color>
     - panic
     - x <address>
+    - reboot
 Type `help <command>` for help on a specific command.";
     let help_echo = "echo:\nDisplay the line of text submitted";
     let help_print_gdt = "print_gdt:\nRetreive and print the gdt pointer retreived from `sgdt` as well as the gdt table";
@@ -47,6 +48,7 @@ Type `help <command>` for help on a specific command.";
         h - halfword (16-bit value)
         w - word (32-bit value)
         g - giant word (64-bit value)";
+    let help_reboot = "reboot:\nReboot the kernel by loading an invalid idt.";
 
     let _help = "help".as_bytes();
     let _echo = "echo".as_bytes();
@@ -61,6 +63,7 @@ Type `help <command>` for help on a specific command.";
             else if x.starts_with("set_color".as_bytes()) { println!("{}", help_set_color); }
             else if x.starts_with("panic".as_bytes()) { println!("{}", help_panic); }
             else if x.starts_with("x".as_bytes()) { println!("{}", help_x); }
+            else if x.starts_with("reboot".as_bytes()) { println!("{}", help_reboot); }
             else { unknown_command(Some(x)); }
         }
         None => { println!("{}", help_help); }
