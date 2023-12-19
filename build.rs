@@ -1,6 +1,8 @@
 fn main() {
 	println!("cargo:rerun-if-changed=src/gdt/gdt.s");
 	println!("cargo:rerun-if-changed=src/idt/idt.s");
+	println!("cargo:rerun-if-changed=build/linker.ld");
+	println!("cargo:rustc-link-arg=-Tbuild/linker.ld");
 	cc::Build::new()
 		.compiler("gcc")
 		.flag("-nostdlib")
@@ -12,5 +14,5 @@ fn main() {
 		.flag("-Wextra")
 		.file("src/gdt/gdt.s")
 		.file("src/idt/idt.s")
-		.compile("gdt-lib");
+		.compile("asm-lib");
 }

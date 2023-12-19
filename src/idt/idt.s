@@ -122,7 +122,6 @@ IRQ 13
 IRQ 14
 IRQ 15
 
-
 irq_common_stub:
 SAVE_REGS
     mov $irq_handler, %eax
@@ -130,7 +129,6 @@ SAVE_REGS
 RESTORE_REGS
     add $8, %esp     # Cleans up the pushed error code and pushed ISR number
     iret
-
 
 isr_common_stub:
 SAVE_REGS
@@ -140,21 +138,10 @@ RESTORE_REGS
     add $8, %esp     # Cleans up the pushed error code and pushed ISR number
     iret
 
-
-
 .global load_idt
 
 load_idt:
     movl 4(%esp), %eax
     lidt (%eax)
     sti
-    ret
-
-
-.global test_function
-test_function:
-    mov $0, %ax
-    xor %dx, %dx
-    mov $0, %cx
-    div %cx
     ret

@@ -3,14 +3,10 @@ RM := rm -rf
 MKDIR := mkdir -pv
 DIR=$(PWD)
 
-
-RUSTC = rustc
 KERNEL = kernel
-KERNEL_LIB = libkernel.a
-KERNEL_LIB_PATH = target/x86/debug/$(KERNEL_LIB)
-KERNEL_LIB_RELEASE_PATH = target/x86/release/$(KERNEL_LIB)
+KERNEL_PATH = target/i386-unknown-none/debug/$(KERNEL)
+KERNEL_RELEASE_PATH = target/i386-unknown-none/release/$(KERNEL)
 CFG = build/grub.cfg
-LINKER_FILE = build/linker.ld
 ISO_PATH := iso
 BOOT_PATH := $(ISO_PATH)/boot
 GRUB_PATH := $(BOOT_PATH)/grub
@@ -18,29 +14,21 @@ GRUB_PATH := $(BOOT_PATH)/grub
 DOCKER_IMG_NAME = "kfs:1"
 ISO_NAME = kernel.iso
 
-SRCS = $(addprefix src/, $(SRC))
-SRC = main.rs
-OBJ = $(SRCS:.rs=.o)
-
 .PHONY: all
-all: bootloader kernel linker iso
 
-release: bootloader kernel_release linker_release iso
+all: release
 
-bootloader:
-	nasm -f elf32 boot.asm -o boot.o
+dev: kernel iso
+
+release: kernel_release iso
 
 kernel:
 	cargo build
+	cp $(KERNEL_PATH) .
 
 kernel_release:
 	cargo build --release
-
-linker: bootloader kernel
-	ld -m elf_i386 -T $(LINKER_FILE) -o $(KERNEL) boot.o $(KERNEL_LIB_PATH)
-
-linker_release: bootloader kernel_release
-	ld -m elf_i386 -T $(LINKER_FILE) -o $(KERNEL) boot.o $(KERNEL_LIB_RELEASE_PATH)
+	cp $(KERNEL_RELEASE_PATH) .
 
 iso: kernel
 	$(MKDIR) $(GRUB_PATH)
@@ -58,13 +46,8 @@ docker-build:
 run:
 	qemu-system-i386 -cdrom $(ISO_NAME)
 
-run-kernel:
-	qemu-system-i386 -kernel $(KERNEL)
-
 clean:
 	$(RM) *.o *iso $(OBJ)
 
 fclean: clean
 	$(RM) $(ISO_NAME) $(KERNEL)
-
-.PHONY: clean

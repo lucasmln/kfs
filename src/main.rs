@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)]
+#![feature(naked_functions)]
 
 mod interface;
 mod utils;
@@ -11,6 +12,35 @@ mod keyboard;
 mod asm;
 
 use interface::Colors;
+
+#[allow(dead_code)]
+pub struct MultibootHeader {
+    magic: u32,
+    arch: u32,
+    magic2: u32
+}
+
+#[no_mangle]
+#[link_section = ".multiboot"]
+pub static MULTIBOOT: MultibootHeader = MultibootHeader {
+    magic: 0x1BADB002,
+    arch: 0x0,
+    magic2: -(0x1BADB002 as i32) as u32
+};
+
+#[naked]
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    unsafe {
+        core::arch::asm!("
+            cli
+            mov esp, 0xf00000
+            call main
+            cli
+            hlt
+        ", options(noreturn));
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn main() -> ! {
